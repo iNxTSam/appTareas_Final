@@ -2,12 +2,22 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthenticationComplianceTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(PreventRequestForgery::class);
+    }
 
     private function registrarParams(): array
     {
@@ -17,6 +27,15 @@ class AuthenticationComplianceTest extends TestCase
             'password' => 'Abcd1234',
             'password_confirmation' => 'Abcd1234',
         ];
+    }
+
+    private function crearUsuario(): User
+    {
+        return User::create([
+            'name' => 'Ana',
+            'email' => 'ana@test.local',
+            'password' => Hash::make('Abcd1234'),
+        ]);
     }
 
     public function test_cp01_registro_valido(): void
@@ -77,14 +96,14 @@ class AuthenticationComplianceTest extends TestCase
     public function test_cp08_password_hasheada(): void
     {
         $this->post('/registro', $this->registrarParams());
-        $hash = \App\Models\User::first()->password;
+        $hash = User::first()->password;
         $this->assertNotSame('Abcd1234', $hash);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('Abcd1234', $hash));
+        $this->assertTrue(Hash::check('Abcd1234', $hash));
     }
 
     public function test_cp09_login_credenciales_correctas(): void
     {
-        $this->post('/registro', $this->registrarParams());
+        $this->crearUsuario();
         $this->post('/login', ['email' => 'ana@test.local', 'password' => 'Abcd1234'])
             ->assertRedirect(route('panel'));
         $this->assertAuthenticated();
@@ -92,7 +111,7 @@ class AuthenticationComplianceTest extends TestCase
 
     public function test_cp10_password_incorrecta_mensaje_generico(): void
     {
-        $this->post('/registro', $this->registrarParams());
+        $this->crearUsuario();
         $this->post('/login', ['email' => 'ana@test.local', 'password' => 'Otra1234'])
             ->assertRedirect('/')
             ->assertSessionHasErrors('email');
@@ -128,14 +147,16 @@ class AuthenticationComplianceTest extends TestCase
 
     public function test_cp14_url_privada_con_sesion(): void
     {
-        $this->post('/registro', $this->registrarParams());
-        $this->post('/login', ['email' => 'ana@test.local', 'password' => 'Abcd1234']);
-        $this->get('/panel')->assertOk()->assertSee('Área privada');
+        $user = $this->crearUsuario();
+        $this->actingAs($user)
+            ->get('/panel')
+            ->assertOk()
+            ->assertSee('Área privada');
     }
 
     public function test_login_case_insensitive(): void
     {
-        $this->post('/registro', $this->registrarParams());
+        $this->crearUsuario();
         $this->post('/login', ['email' => 'ANA@Test.LOCAL', 'password' => 'Abcd1234'])
             ->assertRedirect(route('panel'));
         $this->assertAuthenticated();
