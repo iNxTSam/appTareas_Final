@@ -2,15 +2,12 @@
 -- PostgreSQL database dump
 --
 
-\restrict ujLilYRFa63jJIzhH7OY4qqIpFmZyMNkcIe9cUgB1W9lJRULRedHDvGkvLbv5is
-
 -- Dumped from database version 18.6
 -- Dumped by pg_dump version 18.6
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -383,6 +380,4 @@ CREATE INDEX sessions_user_id_index ON public.sessions USING btree (user_id);
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict ujLilYRFa63jJIzhH7OY4qqIpFmZyMNkcIe9cUgB1W9lJRULRedHDvGkvLbv5is
 
