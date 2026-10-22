@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+!.env.production.example
+node_modules
+vendor
+storage/logs/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+.dockerignore
+Dockerfile
+docker-compose*.yml
