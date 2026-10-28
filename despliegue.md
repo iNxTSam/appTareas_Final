@@ -26,16 +26,20 @@ Add Ingress Rules:
 git clone https://github.com/iNxTSam/appTareas_Final.git
 cd appTareas_Final
 cp .env.production.example .env
-nano .env      # edita DB_PASSWORD
+
+# Genera una clave y pégala en APP_KEY (debe empezar por base64:)
+echo "base64:$(openssl rand -base64 32)"
+
+nano .env      # edita APP_KEY, DB_PASSWORD y APP_URL
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-Generar la APP_KEY (una sola vez):
+El contenedor `app` ejecuta las migraciones al iniciar. La base `bd` y el usuario
+`postgres` se crean a partir de `DB_DATABASE` y `DB_USERNAME` en el servicio `db`.
 
-```sh
-docker compose -f docker-compose.prod.yml exec app php artisan key:generate
-docker compose -f docker-compose.prod.yml restart app
-```
+> Si el volumen `pgdata` ya existe con otra base, PostgreSQL no crea la nueva
+> automáticamente. Créala manualmente o elimina el volumen con
+> `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
 
 ## 4. Verificar
 

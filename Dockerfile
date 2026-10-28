@@ -1,11 +1,13 @@
 FROM php:8.4-cli
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # Librerias del sistema que necesitan las extensiones de PHP
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git unzip libpq-dev libzip-dev libonig-dev libicu-dev \
+        git unzip libpq-dev libzip-dev libonig-dev libicu-dev libsqlite3-dev \
         ca-certificates curl gnupg \
-    && docker-php-ext-install pdo_pgsql mbstring zip bcmath intl pcntl \
-    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && docker-php-ext-install pdo_pgsql pdo_sqlite mbstring zip bcmath intl pcntl \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -22,7 +24,7 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-s
 COPY . .
 
 # Dependencias de frontend y compilacion de assets con Vite
-RUN if [ -f package.json ]; then npm ci && npm run build; fi
+RUN npm ci --no-audit --no-fund && npm run build
 
 RUN composer dump-autoload --optimize
 
