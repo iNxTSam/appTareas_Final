@@ -14,6 +14,8 @@ Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 Route::get('/registro', [RegisterController::class, 'create'])->name('register');
 Route::post('/registro', [RegisterController::class, 'store'])->name('register.store');
 
+Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
 Route::get('/panel', function () {
     return view('panel');
-})->middleware('auth')->name('panel');
+})->middleware(['auth', 'no-cache'])->name('panel');
