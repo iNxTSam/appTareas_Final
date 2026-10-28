@@ -10,7 +10,7 @@
         <p class="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('success') }}</p>
     @endif
 
-    <form method="POST" action="{{ route('login.store') }}" class="space-y-5">
+    <form method="POST" action="{{ route('login.store') }}" class="space-y-5" data-validation="login">
         @csrf
 
         <div>
@@ -22,11 +22,18 @@
                 value="{{ old('email') }}"
                 required
                 autofocus
+                autocomplete="email"
+                data-rules="required email"
+                aria-describedby="error-email"
+                aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
                 class="w-full rounded-full border border-gris/30 bg-input px-5 py-3 text-negro outline-none placeholder:text-gris/50 focus:border-primario focus:ring-2 focus:ring-primario/30"
             >
-            @error('email')
-                <p class="mt-1 text-sm text-primario">{{ $message }}</p>
-            @enderror
+            <p
+                id="error-email"
+                data-error-for="email"
+                role="alert"
+                class="mt-1 text-sm text-primario @if (! $errors->has('email')) hidden @endif"
+            >{{ $errors->first('email') }}</p>
         </div>
 
         <div>
@@ -36,11 +43,18 @@
                 type="password"
                 name="password"
                 required
+                autocomplete="current-password"
+                data-rules="required"
+                aria-describedby="error-password"
+                aria-invalid="{{ $errors->has('password') ? 'true' : 'false' }}"
                 class="w-full rounded-full border border-gris/30 bg-input px-5 py-3 text-negro outline-none placeholder:text-gris/50 focus:border-primario focus:ring-2 focus:ring-primario/30"
             >
-            @error('password')
-                <p class="mt-1 text-sm text-primario">{{ $message }}</p>
-            @enderror
+            <p
+                id="error-password"
+                data-error-for="password"
+                role="alert"
+                class="mt-1 text-sm text-primario @if (! $errors->has('password')) hidden @endif"
+            >{{ $errors->first('password') }}</p>
         </div>
 
         <button
