@@ -2,6 +2,14 @@
 
 Aplicación de autenticación desarrollada con Laravel para el proyecto de Ingeniería de Software de Uniempresarial. Incluye el flujo web con validaciones en vivo y una API REST protegida con tokens.
 
+## Roles
+
+| Área | Integrantes |
+| --- | --- |
+| Backend y BD | Samuel Prieto, Daniela Ramírez |
+| FrontEnd | Anderson Lugo, Nicolas Arenas |
+| Pruebas y UI | Jose Daniel |
+
 ## Estado del proyecto
 
 | Historia | Descripción | Estado |
