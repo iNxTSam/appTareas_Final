@@ -42,8 +42,8 @@ class AuthenticationComplianceTest extends TestCase
     public function test_cp01_registro_valido(): void
     {
         $this->post('/registro', $this->registrarParams())
-            ->assertRedirect(route('register'))
-            ->assertSessionHas('success');
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('success', 'Cuenta creada correctamente. Inicia sesión.');
         $this->assertDatabaseHas('users', ['email' => 'ana@test.local']);
     }
 
@@ -161,5 +161,38 @@ class AuthenticationComplianceTest extends TestCase
         $this->post('/login', ['email' => 'ANA@Test.LOCAL', 'password' => 'Abcd1234'])
             ->assertRedirect(route('panel'));
         $this->assertAuthenticated();
+    }
+
+    public function test_logout_cierra_la_sesion_y_redirige_al_login(): void
+    {
+        $user = $this->crearUsuario();
+
+        $this->actingAs($user)
+            ->post('/logout')
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('success', 'Sesión cerrada correctamente.');
+
+        $this->assertGuest();
+        $this->get('/panel')->assertRedirect(route('login'));
+    }
+
+    public function test_logout_requiere_autenticacion(): void
+    {
+        $this->post('/logout')->assertRedirect(route('login'));
+    }
+
+    public function test_panel_no_se_cachea_para_evitar_el_boton_atras(): void
+    {
+        $user = $this->crearUsuario();
+
+        $response = $this->actingAs($user)->get('/panel');
+
+        $response->assertOk()->assertHeader('Pragma', 'no-cache');
+
+        $cacheControl = $response->headers->get('Cache-Control');
+
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('no-cache', $cacheControl);
+        $this->assertStringContainsString('must-revalidate', $cacheControl);
     }
 }
