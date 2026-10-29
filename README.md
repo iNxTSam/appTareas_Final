@@ -336,15 +336,18 @@ cd backend && vendor/bin/pint
 cd frontend && vendor/bin/pint
 ```
 
-El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en push a `main` y en pull requests hacia `main`.
+El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en push a `main`, `backend`, `frontend` y `testing`, y en pull requests hacia esas ramas.
 
 ## Ramas de trabajo
 
-Usamos trunk-based development:
+Trabajamos con una rama por rol y `main` como integración:
 
-- `main`: rama estable y protegida; siempre desplegable.
-- Ramas cortas por tarea: `feat/backend-...`, `feat/frontend-...`, `fix/...`, `test/...`, `docs/...`, `chore/...` y `hotfix/...`.
-- Cada tarea se integra con PR, al menos una aprobación, CI en verde y squash merge.
+- `backend`: equipo Backend/BD; API, modelos, migraciones y pruebas de API.
+- `frontend`: equipo Frontend; vistas Blade, assets y pruebas web.
+- `testing`: QA/UI; pruebas, documentación y validación visual.
+- `main`: rama estable y protegida; recibe los PR de integración.
+- Cada integrante puede trabajar en su rama de rol o en una subrama `backend/<tarea>`, `frontend/<tarea>` o `testing/<tarea>`.
+- Los PR hacia `main` requieren al menos una aprobación, CI en verde y squash merge.
 - `CODEOWNERS` asigna la revisión según la carpeta y el rol.
 - Las antiguas ramas `Backend`, `Frontend` y `Experimentar` quedaron archivadas en los tags `archive/*`.
 

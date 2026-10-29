@@ -23,21 +23,22 @@ Luego configura los archivos `.env` de `backend/` y `frontend/` siguiendo el [RE
 
 ## Flujo de ramas
 
-Usamos trunk-based development:
+Usamos una rama por rol:
 
-- `main` es la rama estable y está protegida.
-- Cada tarea se hace en una rama corta creada desde `main`.
-- Al terminar, se abre un PR hacia `main`.
-- No se hace push directo a `main`.
+- `backend`: equipo Backend/BD (API, modelos, migraciones y pruebas de API).
+- `frontend`: equipo Frontend (Blade, CSS/JS y pruebas web).
+- `testing`: QA/UI (pruebas, documentación y validación visual).
+- `main`: integración estable y protegida.
+
+Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `backend/<tarea>`, `frontend/<tarea>` o `testing/<tarea>` y fusionarla a su rama de rol.
 
 Nombres permitidos:
 
-| Tipo | Ejemplo |
+| Rama | Ejemplo |
 | --- | --- |
-| `feat/backend-...` | `feat/backend-rate-limit` |
-| `feat/frontend-...` | `feat/frontend-password-recovery` |
-| `fix/...` | `fix/frontend-logout-back` |
-| `test/...` | `test/auth-cp-cases` |
+| `backend/...` | `backend/rate-limit` |
+| `frontend/...` | `frontend/password-recovery` |
+| `testing/...` | `testing/cp-cases` |
 | `docs/...` | `docs/repo-structure` |
 | `chore/...` | `chore/ci-cleanup` |
 | `hotfix/...` | `hotfix/login-500` |
