@@ -197,9 +197,9 @@ Detén todo con `Ctrl+C`.
 
 3. Edita:
 
-   - `.env` (raíz): `DB_PASSWORD` y, si aplica, `FRONTEND_PORT`.
-   - `backend/.env`: `APP_KEY`, `DB_PASSWORD` (opcional; Compose lo toma de la raíz).
-   - `frontend/.env`: `APP_KEY`, `APP_URL` con la URL o IP pública.
+   - `.env` (raíz): `DB_PASSWORD`, `FRONTEND_PORT` y `FRONTEND_APP_URL` con la URL o IP pública.
+   - `backend/.env`: `APP_KEY` y, opcionalmente, `DB_PASSWORD` (Compose lo toma de la raíz).
+   - `frontend/.env`: `APP_KEY`; `APP_URL` se sobrescribe con `FRONTEND_APP_URL` en Compose.
 
 4. Construye y levanta:
 

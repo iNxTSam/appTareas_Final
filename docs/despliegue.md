@@ -47,8 +47,8 @@ Pega la primera en `APP_KEY` de `backend/.env` y la segunda en `APP_KEY` de `fro
 
 Edita:
 
-- `.env` (raíz): `DB_PASSWORD` y, si aplica, `FRONTEND_PORT`.
-- `frontend/.env`: `APP_URL` con la IP o dominio público.
+- `.env` (raíz): `DB_PASSWORD`, `FRONTEND_PORT` y `FRONTEND_APP_URL` con la IP o dominio público.
+- `frontend/.env`: `APP_KEY`; `APP_URL` se sobrescribe con `FRONTEND_APP_URL` en Compose.
 
 ## 4. Construir y levantar
 
