@@ -1,0 +1,17 @@
+# Backend y base de datos
+/backend/ @iNxTSam @Dani34881
+
+# Frontend
+/frontend/ @Lugop67 @Estebaaaannxx11
+
+# QA y UI
+# @JDDAR debe aceptar la invitacion; @iNxTSam queda como respaldo.
+/frontend/tests/ @JDDAR @iNxTSam
+/docs/ @JDDAR @iNxTSam
+
+# Infraestructura y documentacion raiz
+/.github/ @iNxTSam
+/compose.yaml @iNxTSam
+/.env.example @iNxTSam
+/README.md @iNxTSam
+/CONTRIBUTING.md @iNxTSam

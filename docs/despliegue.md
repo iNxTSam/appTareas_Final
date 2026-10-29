@@ -53,7 +53,7 @@ Edita:
 ## 4. Construir y levantar
 
 ```sh
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f compose.yaml up -d --build
 ```
 
 El contenedor `backend` ejecuta `php artisan migrate --force` al iniciar. El
@@ -62,7 +62,7 @@ frontend espera a que el backend esté saludable antes de arrancar.
 ## 5. Verificar
 
 ```sh
-docker compose -f docker-compose.prod.yml ps
+docker compose -f compose.yaml ps
 curl -I http://localhost
 curl -I http://localhost/up
 ```
@@ -76,19 +76,19 @@ El backend no se publica directamente; el frontend lo consume como
 
 ```sh
 git pull
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f compose.yaml up -d --build
 ```
 
 ## Comandos útiles
 
 ```sh
-docker compose -f docker-compose.prod.yml logs -f frontend
-docker compose -f docker-compose.prod.yml logs -f backend
-docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
-docker compose -f docker-compose.prod.yml exec backend php artisan route:list
-docker compose -f docker-compose.prod.yml down
+docker compose -f compose.yaml logs -f frontend
+docker compose -f compose.yaml logs -f backend
+docker compose -f compose.yaml exec backend php artisan migrate --force
+docker compose -f compose.yaml exec backend php artisan route:list
+docker compose -f compose.yaml down
 ```
 
 > Si el volumen `pgdata` ya existe con otra base, PostgreSQL no crea la nueva
 > automáticamente. Créala manualmente o elimina el volumen con
-> `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
+> `docker compose -f compose.yaml down -v` (esto borra los datos).
