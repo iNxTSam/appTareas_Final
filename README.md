@@ -1,23 +1,59 @@
 # App Tareas
 
-Aplicación de autenticación desarrollada con Laravel para el proyecto de Ingeniería de Software de Uniempresarial. Incluye el flujo web con validaciones en vivo y una API REST protegida con tokens.
+Monorepo de autenticación para el proyecto de Ingeniería de Software de Uniempresarial. Está compuesto por dos aplicaciones Laravel conectadas por una API REST:
 
-## Estado del proyecto
+- **backend/**: API Laravel con Sanctum, PostgreSQL y toda la lógica de usuarios.
+- **frontend/**: aplicación Laravel con Blade que consume la API y guarda el token en la sesión del servidor.
 
-| Historia | Descripción | Estado |
-| --- | --- | --- |
-| HU-01 | Registro de usuarios con validaciones y contraseña hasheada | Implementado |
-| HU-02 | Inicio de sesión con mensaje genérico y acceso al panel | Implementado |
-| HU-04 | Cierre de sesión y protección del panel al volver atrás | Implementado |
-| HU-03 | Recuperación de contraseña | Pendiente |
-| HU-05 | Límite de intentos fallidos | Pendiente |
+El navegador nunca recibe el token directamente: el frontend actúa como BFF (Backend For Frontend), llama a la API por HTTP y conserva el token en la sesión de Laravel.
 
-Además:
+## Arquitectura
 
-- API REST de autenticación con Laravel Sanctum.
-- Validación en vivo de correo, contraseña y confirmación.
-- Mensajes de éxito al registrar y al cerrar sesión.
-- 32 pruebas automatizadas.
+```text
+Navegador
+   │  sesión + CSRF
+   ▼
+frontend/ (Laravel + Blade)  ──HTTP + Bearer token──►  backend/ (Laravel API)
+                                                          │
+                                                          ▼
+                                                     PostgreSQL
+```
+
+- **Backend**: único dueño de la base de datos, usuarios, migraciones y tokens de Sanctum.
+- **Frontend**: no tiene base de datos ni credenciales de PostgreSQL; solo sesión, vistas y llamadas HTTP a la API.
+- **Docker**: el frontend es el único servicio público. El backend y PostgreSQL quedan en redes internas.
+
+## Estructura
+
+```text
+appTareas_Final/
+├── backend/                       API Laravel
+│   ├── app/Http/Controllers/Api/  Controlador de autenticación
+│   ├── app/Models/User.php
+│   ├── routes/api.php
+│   ├── database/migrations/
+│   ├── tests/Feature/Api/
+│   ├── config/sanctum.php
+│   ├── .env.example
+│   └── Dockerfile
+├── frontend/                      Laravel + Blade
+│   ├── app/Http/Controllers/Web/  Login, registro y panel
+│   ├── app/Http/Middleware/Web/   Autenticación y protección Atrás
+│   ├── app/Services/BackendApiClient.php
+│   ├── resources/views/
+│   ├── resources/css/app.css
+│   ├── resources/js/
+│   ├── routes/web.php
+│   ├── tests/Feature/Web/
+│   ├── .env.example
+│   └── Dockerfile
+├── .github/workflows/tests.yml
+├── documentacion/
+├── docker-compose.prod.yml
+├── .env.example                   Variables de Compose
+├── README.md
+└── despliegue.md
+```
 
 ## Stack
 
@@ -31,28 +67,23 @@ Además:
 
 ## Requisitos
 
-- PHP 8.4.1 o superior con las extensiones `pdo_pgsql`, `mbstring`, `openssl`, `fileinfo`, `zip` e `intl`.
+- PHP 8.4.1 o superior con `pdo_pgsql`, `mbstring`, `openssl`, `fileinfo`, `zip` e `intl`.
 - Composer 2.
 - Node.js 22.12 o superior y npm (probado con Node 24).
-- PostgreSQL 15 o superior (solo para la aplicación; las pruebas usan SQLite en memoria).
+- PostgreSQL 15 o superior.
 
 ## Instalación local
 
+### Backend
+
 ```bash
+cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
 ```
 
-En Windows PowerShell:
-
-```powershell
-composer install
-Copy-Item .env.example .env
-php artisan key:generate
-```
-
-Configura la base de datos en `.env`:
+Configura la base en `backend/.env`:
 
 ```dotenv
 DB_CONNECTION=pgsql
@@ -63,98 +94,100 @@ DB_USERNAME=postgres
 DB_PASSWORD=tu_clave_local
 ```
 
-Crea la base si no existe y ejecuta las migraciones:
+Crea la base y ejecuta las migraciones:
 
 ```bash
 createdb -U postgres bd
 php artisan migrate
+php artisan serve --host=127.0.0.1 --port=8001
 ```
 
-También puedes crearla desde `psql`:
+La API queda en <http://127.0.0.1:8001>. La raíz responde con información básica y `/up` es el healthcheck.
 
-```sql
-CREATE DATABASE bd;
-```
-
-Instala y compila los assets, y levanta el servidor:
+### Frontend
 
 ```bash
+cd frontend
+composer install
+cp .env.example .env
+php artisan key:generate
 npm install
 npm run build
-php artisan serve
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-La aplicación queda disponible en <http://localhost:8000>.
+En `frontend/.env` configura la URL del backend:
 
-> Las pruebas usan SQLite en memoria (`phpunit.xml`), por lo que no necesitan PostgreSQL.
+```dotenv
+BACKEND_API_URL=http://127.0.0.1:8001
+```
 
-## Base de datos
+La aplicación queda en <http://127.0.0.1:8000>. El frontend usa `SESSION_DRIVER=file` y `CACHE_STORE=file`; no necesita PostgreSQL.
 
-- Entorno local: base `bd`, usuario `postgres`. La contraseña se define únicamente en el archivo `.env` local, que no se versiona.
-- Entorno Docker: el servicio `db` crea la base y el usuario a partir de `POSTGRES_DB`, `POSTGRES_USER` y `POSTGRES_PASSWORD` definidos en `.env`. La aplicación se conecta con `DB_HOST=db`.
-- Los datos de PostgreSQL se conservan en el volumen `pgdata`.
+> Las pruebas usan SQLite en memoria y `Http::fake()`. No requieren PostgreSQL ni que el backend esté levantado.
 
 ## Docker
 
-1. Crea el archivo de entorno de producción:
+1. Crea los archivos de entorno:
 
    ```bash
-   cp .env.production.example .env
+   cp .env.example .env
+   cp backend/.env.production.example backend/.env
+   cp frontend/.env.production.example frontend/.env
    ```
 
-2. Edita `.env` y define como mínimo:
+2. Genera una `APP_KEY` distinta para cada aplicación:
 
-   - `APP_URL` con la URL o IP del servidor.
-   - `DB_PASSWORD` con una clave segura.
-   - `APP_KEY` con una clave generada en el host. El valor debe empezar por `base64:`:
+   ```bash
+   echo "base64:$(openssl rand -base64 32)"
+   ```
 
-     ```bash
-     echo "base64:$(openssl rand -base64 32)"
-     ```
+   Pega el resultado en `backend/.env` y en `frontend/.env`, cada uno con su propia clave.
 
-     Si prefieres usar PHP:
+3. Edita:
 
-     ```bash
-     php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
-     ```
+   - `.env` (raíz): `DB_PASSWORD` y, si aplica, `FRONTEND_PORT`.
+   - `backend/.env`: `APP_KEY`, `DB_PASSWORD` (opcional; Compose lo toma de la raíz).
+   - `frontend/.env`: `APP_KEY`, `APP_URL` con la URL o IP pública.
 
-3. Construye y levanta los contenedores:
+4. Construye y levanta:
 
    ```bash
    docker compose -f docker-compose.prod.yml up -d --build
    ```
 
-   El contenedor `app` ejecuta `php artisan migrate --force` antes de iniciar el servidor.
+   El backend ejecuta `php artisan migrate --force` al iniciar. El frontend espera a que el backend esté saludable.
 
-4. Verifica el estado:
+5. Verifica:
 
    ```bash
    docker compose -f docker-compose.prod.yml ps
    curl -I http://localhost
    ```
 
-La aplicación se publica en el puerto `80`. La guía del servidor Oracle está en [`despliegue.md`](despliegue.md).
+   El frontend se publica en el puerto `80`; el backend queda en la red interna como `http://backend:8000` y PostgreSQL como `db`.
 
 Comandos útiles:
 
 ```bash
-docker compose -f docker-compose.prod.yml logs -f app
-docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+docker compose -f docker-compose.prod.yml logs -f frontend
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
 docker compose -f docker-compose.prod.yml down
 ```
 
-Para actualizar una instancia existente:
+Para actualizar:
 
 ```bash
 git pull
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-> Si cambias el nombre de la base después de crear el volumen `pgdata`, PostgreSQL no crea la nueva base automáticamente. Crea la base manualmente o elimina el volumen con `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
+> Si cambias el nombre de la base después de crear el volumen `pgdata`, PostgreSQL no crea la nueva base automáticamente. Créala manualmente o elimina el volumen con `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
 
 ## API REST
 
-La API usa tokens Bearer de Sanctum. No usa sesiones ni CSRF.
+La API usa tokens Bearer de Sanctum. La autenticación de la API es independiente de la sesión del frontend.
 
 | Método | Ruta | Autenticación | Descripción |
 | --- | --- | --- | --- |
@@ -166,7 +199,7 @@ La API usa tokens Bearer de Sanctum. No usa sesiones ni CSRF.
 ### Registro
 
 ```bash
-curl -X POST http://localhost:8000/api/register \
+curl -X POST http://127.0.0.1:8001/api/register \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{
@@ -195,7 +228,7 @@ Respuesta `201 Created`:
 ### Inicio de sesión
 
 ```bash
-curl -X POST http://localhost:8000/api/login \
+curl -X POST http://127.0.0.1:8001/api/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email": "ana@test.local", "password": "Abcd1234"}'
@@ -206,11 +239,11 @@ Respuesta `200 OK` con la misma estructura del registro. Si las credenciales fal
 ### Perfil y cierre de sesión
 
 ```bash
-curl http://localhost:8000/api/me \
+curl http://127.0.0.1:8001/api/me \
   -H "Accept: application/json" \
   -H "Authorization: Bearer TOKEN"
 
-curl -X POST http://localhost:8000/api/logout \
+curl -X POST http://127.0.0.1:8001/api/logout \
   -H "Accept: application/json" \
   -H "Authorization: Bearer TOKEN"
 ```
@@ -220,20 +253,30 @@ Sin token, `/api/me` y `/api/logout` responden `401 Unauthorized`.
 ## Flujo web
 
 - `GET /registro`: formulario de creación de cuenta con validación en vivo.
-- `POST /registro`: crea el usuario y redirige a `/login` con el mensaje “Cuenta creada correctamente. Inicia sesión.”.
-- `GET /login`: formulario de acceso con validación en vivo.
-- `POST /login`: autentica y redirige a `/panel`.
-- `GET /panel`: área privada protegida por el middleware `auth`, con botón para cerrar sesión.
-- `POST /logout`: invalida la sesión, regenera el token CSRF y redirige a `/login`.
+- `POST /registro`: el frontend valida y llama a `POST /api/register`; redirige a `/login` con “Cuenta creada correctamente. Inicia sesión.”.
+- `GET /login`: formulario de acceso.
+- `POST /login`: el frontend llama a `POST /api/login`, guarda el token en la sesión y redirige a `/panel`.
+- `GET /panel`: exige token en sesión, valida con `GET /api/me` y muestra el área privada.
+- `POST /logout`: revoca el token en la API, limpia la sesión y redirige al login.
 - El panel se envía con cabeceras `no-store` y se recarga si el navegador lo restaura desde la caché de historial. Después de cerrar sesión, el botón Atrás o una URL directa a `/panel` redirigen al login.
 
 ## Pruebas
 
+Backend:
+
 ```bash
+cd backend
 php artisan test
 ```
 
-La suite incluye los casos CP-01 a CP-14 del plan de pruebas, el flujo de cierre de sesión y la protección del panel. Al momento de escribir este README: **32 pruebas y 119 aserciones**.
+Frontend:
+
+```bash
+cd frontend
+php artisan test
+```
+
+La suite actual suma **32 pruebas**: 14 del backend (API y hash de contraseña) y 18 del frontend (flujo Blade con la API simulada).
 
 También puedes ejecutar:
 
@@ -242,46 +285,28 @@ vendor/bin/pint
 vendor/bin/pint --test
 ```
 
-El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) y se ejecuta en cada push a `main`, `Backend`, `Frontend` y `Experimentar`, y en pull requests a `main`.
-
-## Estructura relevante
-
-```text
-app/
-  Http/Controllers/
-    Api/AuthController.php       API de registro, login, perfil y logout
-    LoginController.php          Login web y cierre de sesión
-    RegisterController.php       Registro web
-  Http/Middleware/
-    PreventBackHistory.php       Cabeceras para evitar el botón Atrás
-  Models/User.php                Modelo con tokens de Sanctum
-config/
-  sanctum.php                    Configuración de Sanctum
-database/
-  migrations/                    Tablas de usuarios, sesiones y tokens
-resources/
-  js/validation.js               Validación en vivo del formulario
-  views/                         Login, registro y panel
-routes/
-  api.php                        Endpoints /api/*
-  web.php                        Rutas web
-tests/Feature/
-  Api/AuthApiTest.php            Pruebas de la API
-  AuthenticationComplianceTest.php  Pruebas de aceptación web
-documentacion/
-  Product & Sprint Backlog.xlsx  Backlog, plan de pruebas y KPI
-```
+El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en pushes a `main`, `Backend`, `Frontend` y `Experimentar`, y en pull requests a `main`.
 
 ## Ramas de trabajo
 
-- `Backend`: cambios de API y lógica del servidor.
-- `Frontend`: cambios de interfaz, validaciones y flujo web.
-- `main`: rama de integración; recibe los merges de `Backend` y `Frontend`.
+- `Backend`: cambios de API, controladores de API, modelos compartidos, migraciones y pruebas de API.
+- `Frontend`: cambios de controladores y vistas Blade, assets y pruebas web.
+- `main`: rama de integración; contiene ambas aplicaciones y recibe los merges de `Backend` y `Frontend`.
+
+> `Backend` y `Frontend` son ramas de trabajo, no repositorios separados. Ambas conservan el monorepo completo para que pueda ejecutarse; cada una se especializa en su ámbito.
 
 ## Documentación
 
 - [`documentacion/Product & Sprint Backlog.xlsx`](documentacion/Product%20%26%20Sprint%20Backlog.xlsx): historias de usuario, criterios de aceptación, plan de pruebas y KPI.
 - [`despliegue.md`](despliegue.md): despliegue en Oracle Cloud con Docker.
+
+## Seguridad
+
+- El token de Sanctum se guarda en la sesión del frontend; no se expone a JavaScript ni a `localStorage`.
+- Backend y frontend usan `APP_KEY` diferentes.
+- El frontend no tiene credenciales de PostgreSQL.
+- En producción con HTTPS, activa `SESSION_SECURE_COOKIE=true` y `SESSION_ENCRYPT=true`.
+- Cambia la contraseña de PostgreSQL y las claves de ejemplo antes de desplegar.
 
 ## Licencia
 
