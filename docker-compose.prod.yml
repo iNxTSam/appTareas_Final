@@ -1,16 +1,44 @@
 services:
-  app:
-    build: .
-    image: app-tareas-final:latest
-    container_name: app_tareas
+  frontend:
+    build: ./frontend
+    image: app-tareas-frontend:latest
+    container_name: app_tareas_frontend
     restart: unless-stopped
     ports:
-      - "80:8000"
+      - "${FRONTEND_PORT:-80}:8000"
     env_file:
-      - .env
+      - ./frontend/.env
     environment:
+      BACKEND_API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - frontend_storage:/app/storage
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/login"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - frontend_net
+
+  backend:
+    build: ./backend
+    image: app-tareas-backend:latest
+    container_name: app_tareas_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_URL: http://backend:8000
+      DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-bd}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el .env raiz}
     depends_on:
       db:
         condition: service_healthy
@@ -21,22 +49,32 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
+    networks:
+      - frontend_net
+      - backend_net
 
   db:
     image: postgres:18
     container_name: app_tareas_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:-bd}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD en el .env raiz}
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-bd}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - backend_net
 
 volumes:
   pgdata:
+  frontend_storage:
+
+networks:
+  frontend_net:
+  backend_net:

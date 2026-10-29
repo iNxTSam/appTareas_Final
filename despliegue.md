@@ -2,6 +2,12 @@
 
 Instancia: `servidor-web-2` — Oracle Linux 9.8 — IP `157.137.210.124`.
 
+La aplicación se despliega como tres servicios:
+
+- `frontend`: Laravel + Blade, público en el puerto 80.
+- `backend`: Laravel API, solo accesible desde la red interna de Docker.
+- `db`: PostgreSQL 18, solo accesible desde el backend.
+
 ## 1. Requisitos en el servidor
 
 ```sh
@@ -20,37 +26,53 @@ Add Ingress Rules:
 - TCP puerto **80** desde `0.0.0.0/0`
 - TCP puerto **443** desde `0.0.0.0/0`
 
-## 3. Clonar y desplegar
+## 3. Clonar y configurar
 
 ```sh
 git clone https://github.com/iNxTSam/appTareas_Final.git
 cd appTareas_Final
-cp .env.production.example .env
 
-# Genera una clave y pégala en APP_KEY (debe empezar por base64:)
+cp .env.example .env
+cp backend/.env.production.example backend/.env
+cp frontend/.env.production.example frontend/.env
+```
+
+Genera una clave distinta para cada aplicación:
+
+```sh
 echo "base64:$(openssl rand -base64 32)"
+```
 
-nano .env      # edita APP_KEY, DB_PASSWORD y APP_URL
+Pega la primera en `APP_KEY` de `backend/.env` y la segunda en `APP_KEY` de `frontend/.env`.
+
+Edita:
+
+- `.env` (raíz): `DB_PASSWORD` y, si aplica, `FRONTEND_PORT`.
+- `frontend/.env`: `APP_URL` con la IP o dominio público.
+
+## 4. Construir y levantar
+
+```sh
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
-El contenedor `app` ejecuta las migraciones al iniciar. La base `bd` y el usuario
-`postgres` se crean a partir de `DB_DATABASE` y `DB_USERNAME` en el servicio `db`.
+El contenedor `backend` ejecuta `php artisan migrate --force` al iniciar. El
+frontend espera a que el backend esté saludable antes de arrancar.
 
-> Si el volumen `pgdata` ya existe con otra base, PostgreSQL no crea la nueva
-> automáticamente. Créala manualmente o elimina el volumen con
-> `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
-
-## 4. Verificar
+## 5. Verificar
 
 ```sh
 docker compose -f docker-compose.prod.yml ps
-curl -I http://localhost/login
+curl -I http://localhost
+curl -I http://localhost/up
 ```
 
-Abrir en el navegador: `http://157.137.210.124/login`
+Abrir en el navegador: `http://157.137.210.124`.
 
-## 5. Actualizar la app
+El backend no se publica directamente; el frontend lo consume como
+`http://backend:8000` dentro de la red `frontend_net`.
+
+## 6. Actualizar la app
 
 ```sh
 git pull
@@ -60,7 +82,13 @@ docker compose -f docker-compose.prod.yml up -d --build
 ## Comandos útiles
 
 ```sh
-docker compose -f docker-compose.prod.yml logs -f app
-docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+docker compose -f docker-compose.prod.yml logs -f frontend
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
+docker compose -f docker-compose.prod.yml exec backend php artisan route:list
 docker compose -f docker-compose.prod.yml down
 ```
+
+> Si el volumen `pgdata` ya existe con otra base, PostgreSQL no crea la nueva
+> automáticamente. Créala manualmente o elimina el volumen con
+> `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).

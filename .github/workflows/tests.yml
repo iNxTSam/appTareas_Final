@@ -7,9 +7,12 @@ on:
     branches: [main]
 
 jobs:
-  tests:
-    name: PHP 8.4 - PHPUnit
+  backend:
+    name: Backend - PHP 8.4
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout del codigo
@@ -22,20 +25,68 @@ jobs:
           extensions: mbstring, pdo_sqlite, bcmath, intl, pcntl, zip
           coverage: none
 
-      - name: Cache de dependencias de Composer
+      - name: Cache de Composer
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache/files
-          key: composer-${{ hashFiles('composer.lock') }}
-          restore-keys: composer-
+          key: composer-backend-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-backend-
 
-      - name: Instalar dependencias de Composer
+      - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Preparar archivo de entorno
+      - name: Preparar entorno
         run: |
           cp .env.example .env
           php artisan key:generate
 
-      - name: Ejecutar la suite de pruebas
-        run: vendor/bin/phpunit --testdox
+      - name: Ejecutar pruebas
+        run: php artisan test
+
+  frontend:
+    name: Frontend - PHP 8.4 + Node 24
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout del codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, bcmath, intl, pcntl, zip
+          coverage: none
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cache de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-frontend-${{ hashFiles('frontend/composer.lock') }}
+          restore-keys: composer-frontend-
+
+      - name: Instalar dependencias PHP
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Preparar entorno
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Instalar y compilar assets
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Ejecutar pruebas
+        run: php artisan test
