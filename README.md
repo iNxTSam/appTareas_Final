@@ -5,6 +5,14 @@ Monorepo de autenticación para el proyecto de Ingeniería de Software de Uniemp
 - **backend/**: API Laravel con Sanctum, PostgreSQL y toda la lógica de usuarios.
 - **frontend/**: aplicación Laravel con Blade que consume la API y guarda el token en la sesión del servidor.
 
+## Roles
+
+| Área | Integrantes |
+| --- | --- |
+| Backend y BD | Samuel Prieto, Daniela Ramírez |
+| FrontEnd | Anderson Lugo, Nicolas Arenas |
+| Pruebas y UI | Jose Daniel |
+
 El navegador nunca recibe el token directamente: el frontend actúa como BFF (Backend For Frontend), llama a la API por HTTP y conserva el token en la sesión de Laravel.
 
 ## Arquitectura
