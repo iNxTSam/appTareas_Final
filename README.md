@@ -7,11 +7,13 @@ Monorepo de autenticación para el proyecto de Ingeniería de Software de Uniemp
 
 ## Roles
 
-| Área | Integrantes |
-| --- | --- |
-| Backend y BD | Samuel Prieto, Daniela Ramírez |
-| FrontEnd | Anderson Lugo, Nicolas Arenas |
-| Pruebas y UI | Jose Daniel |
+| Área | Integrantes | GitHub |
+| --- | --- | --- |
+| Backend y BD | Samuel Prieto, Daniela Ramírez | `@iNxTSam`, `@Dani34881` |
+| Frontend | Anderson Lugo, Nicolás Arenas | `@Lugop67`, `@Estebaaaannxx11` |
+| Pruebas y UI | Jose Daniel | `@JDDAR` |
+
+Jose Daniel tiene la invitación pendiente; mientras tanto, las revisiones de QA/docs las respalda `@iNxTSam`.
 
 El navegador nunca recibe el token directamente: el frontend actúa como BFF (Backend For Frontend), llama a la API por HTTP y conserva el token en la sesión de Laravel.
 
@@ -55,12 +57,21 @@ appTareas_Final/
 │   ├── tests/Feature/Web/
 │   ├── .env.example
 │   └── Dockerfile
-├── .github/workflows/tests.yml
-├── documentacion/
-├── docker-compose.prod.yml
+├── docs/
+│   ├── Product & Sprint Backlog.xlsx
+│   └── despliegue.md
+├── .github/
+│   ├── CODEOWNERS
+│   ├── pull_request_template.md
+│   ├── ISSUE_TEMPLATE/
+│   └── workflows/tests.yml
+├── compose.yaml
+├── package.json                   Orquestación backend + frontend
 ├── .env.example                   Variables de Compose
+├── CONTRIBUTING.md
 ├── README.md
-└── despliegue.md
+├── AGENTS.md
+└── CLAUDE.md
 ```
 
 ## Stack
@@ -134,6 +145,38 @@ La aplicación queda en <http://127.0.0.1:8000>. El frontend usa `SESSION_DRIVER
 
 > Las pruebas usan SQLite en memoria y `Http::fake()`. No requieren PostgreSQL ni que el backend esté levantado.
 
+## Desarrollo en una sola terminal
+
+Desde la raíz del repositorio:
+
+```bash
+npm run setup   # primera vez: instala dependencias de backend y frontend
+npm run dev
+```
+
+`npm run dev` levanta:
+
+- Backend en `http://127.0.0.1:8001`.
+- Frontend en `http://127.0.0.1:8000`.
+- Vite en `http://127.0.0.1:5173` para recarga en caliente.
+
+Para usar los assets compilados sin Vite:
+
+```bash
+npm run start   # compila el frontend y levanta backend + frontend
+```
+
+Otros comandos:
+
+```bash
+npm run build       # compila el frontend
+npm run test        # ejecuta pruebas de backend y frontend
+npm run docker:up   # docker compose -f compose.yaml up -d --build
+npm run docker:down # docker compose -f compose.yaml down
+```
+
+Detén todo con `Ctrl+C`.
+
 ## Docker
 
 1. Crea los archivos de entorno:
@@ -161,7 +204,7 @@ La aplicación queda en <http://127.0.0.1:8000>. El frontend usa `SESSION_DRIVER
 4. Construye y levanta:
 
    ```bash
-   docker compose -f docker-compose.prod.yml up -d --build
+   docker compose -f compose.yaml up -d --build
    ```
 
    El backend ejecuta `php artisan migrate --force` al iniciar. El frontend espera a que el backend esté saludable.
@@ -169,7 +212,7 @@ La aplicación queda en <http://127.0.0.1:8000>. El frontend usa `SESSION_DRIVER
 5. Verifica:
 
    ```bash
-   docker compose -f docker-compose.prod.yml ps
+   docker compose -f compose.yaml ps
    curl -I http://localhost
    ```
 
@@ -178,20 +221,20 @@ La aplicación queda en <http://127.0.0.1:8000>. El frontend usa `SESSION_DRIVER
 Comandos útiles:
 
 ```bash
-docker compose -f docker-compose.prod.yml logs -f frontend
-docker compose -f docker-compose.prod.yml logs -f backend
-docker compose -f docker-compose.prod.yml exec backend php artisan migrate --force
-docker compose -f docker-compose.prod.yml down
+docker compose -f compose.yaml logs -f frontend
+docker compose -f compose.yaml logs -f backend
+docker compose -f compose.yaml exec backend php artisan migrate --force
+docker compose -f compose.yaml down
 ```
 
 Para actualizar:
 
 ```bash
 git pull
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f compose.yaml up -d --build
 ```
 
-> Si cambias el nombre de la base después de crear el volumen `pgdata`, PostgreSQL no crea la nueva base automáticamente. Créala manualmente o elimina el volumen con `docker compose -f docker-compose.prod.yml down -v` (esto borra los datos).
+> Si cambias el nombre de la base después de crear el volumen `pgdata`, PostgreSQL no crea la nueva base automáticamente. Créala manualmente o elimina el volumen con `docker compose -f compose.yaml down -v` (esto borra los datos).
 
 ## API REST
 
@@ -286,27 +329,30 @@ php artisan test
 
 La suite actual suma **32 pruebas**: 14 del backend (API y hash de contraseña) y 18 del frontend (flujo Blade con la API simulada).
 
-También puedes ejecutar:
+También puedes ejecutar el formateador desde cada aplicación:
 
 ```bash
-vendor/bin/pint
-vendor/bin/pint --test
+cd backend && vendor/bin/pint
+cd frontend && vendor/bin/pint
 ```
 
-El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en pushes a `main`, `Backend`, `Frontend` y `Experimentar`, y en pull requests a `main`.
+El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en push a `main` y en pull requests hacia `main`.
 
 ## Ramas de trabajo
 
-- `Backend`: cambios de API, controladores de API, modelos compartidos, migraciones y pruebas de API.
-- `Frontend`: cambios de controladores y vistas Blade, assets y pruebas web.
-- `main`: rama de integración; contiene ambas aplicaciones y recibe los merges de `Backend` y `Frontend`.
+Usamos trunk-based development:
 
-> `Backend` y `Frontend` son ramas de trabajo, no repositorios separados. Ambas conservan el monorepo completo para que pueda ejecutarse; cada una se especializa en su ámbito.
+- `main`: rama estable y protegida; siempre desplegable.
+- Ramas cortas por tarea: `feat/backend-...`, `feat/frontend-...`, `fix/...`, `test/...`, `docs/...`, `chore/...` y `hotfix/...`.
+- Cada tarea se integra con PR, al menos una aprobación, CI en verde y squash merge.
+- `CODEOWNERS` asigna la revisión según la carpeta y el rol.
+- Las antiguas ramas `Backend`, `Frontend` y `Experimentar` quedaron archivadas en los tags `archive/*`.
 
 ## Documentación
 
-- [`documentacion/Product & Sprint Backlog.xlsx`](documentacion/Product%20%26%20Sprint%20Backlog.xlsx): historias de usuario, criterios de aceptación, plan de pruebas y KPI.
-- [`despliegue.md`](despliegue.md): despliegue en Oracle Cloud con Docker.
+- [`docs/Product & Sprint Backlog.xlsx`](docs/Product%20%26%20Sprint%20Backlog.xlsx): historias de usuario, criterios de aceptación, plan de pruebas y KPI.
+- [`docs/despliegue.md`](docs/despliegue.md): despliegue en Oracle Cloud con Docker.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md): roles, ramas, commits y revisión.
 
 ## Seguridad
 

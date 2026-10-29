@@ -1,0 +1,26 @@
+{
+  "name": "app-tareas-final",
+  "private": true,
+  "description": "Monorepo App Tareas: backend API + frontend Laravel",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "setup": "npm install && cd backend && composer install && cd ../frontend && composer install && npm install",
+    "dev": "concurrently -k -n backend,frontend,vite -c blue,green,magenta \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:frontend:vite\"",
+    "dev:backend": "cd backend && php artisan serve --host=127.0.0.1 --port=8001",
+    "dev:frontend": "cd frontend && php artisan serve --host=127.0.0.1 --port=8000",
+    "dev:frontend:vite": "cd frontend && npm run dev",
+    "prestart": "npm run build",
+    "start": "concurrently -k -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "cd frontend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && php artisan test",
+    "test:frontend": "cd frontend && php artisan test",
+    "docker:up": "docker compose -f compose.yaml up -d --build",
+    "docker:down": "docker compose -f compose.yaml down"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

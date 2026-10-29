@@ -7,6 +7,7 @@ node_modules
 vendor
 public/build
 public/hot
+public/fonts-manifest.dev.json
 storage/logs/*.log
 storage/framework/cache/*
 storage/framework/sessions/*
