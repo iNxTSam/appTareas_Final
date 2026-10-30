@@ -30,15 +30,15 @@ Usamos una rama por rol:
 - `testing`: QA/UI (pruebas, documentación y validación visual).
 - `main`: integración estable y protegida.
 
-Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `backend/<tarea>`, `frontend/<tarea>` o `testing/<tarea>` y fusionarla a su rama de rol.
+Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `feat/backend-...`, `feat/frontend-...` o `test/...` y fusionarla a su rama de rol.
 
 Nombres permitidos:
 
 | Rama | Ejemplo |
 | --- | --- |
-| `backend/...` | `backend/rate-limit` |
-| `frontend/...` | `frontend/password-recovery` |
-| `testing/...` | `testing/cp-cases` |
+| `feat/backend-...` | `feat/backend-rate-limit` |
+| `feat/frontend-...` | `feat/frontend-password-recovery` |
+| `test/...` | `test/auth-cp-cases` |
 | `docs/...` | `docs/repo-structure` |
 | `chore/...` | `chore/ci-cleanup` |
 | `hotfix/...` | `hotfix/login-500` |

@@ -34,6 +34,7 @@ services:
       - ./backend/.env
     environment:
       APP_URL: http://backend:8000
+      FRONTEND_URL: ${FRONTEND_APP_URL:-http://localhost}
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432

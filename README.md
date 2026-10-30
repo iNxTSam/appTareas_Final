@@ -111,7 +111,10 @@ DB_PORT=5432
 DB_DATABASE=bd
 DB_USERNAME=postgres
 DB_PASSWORD=tu_clave_local
+FRONTEND_URL=http://localhost:8000
 ```
+
+`FRONTEND_URL` se usa para construir el enlace de recuperación que se envía por correo.
 
 Crea la base y ejecuta las migraciones:
 
@@ -246,6 +249,8 @@ La API usa tokens Bearer de Sanctum. La autenticación de la API es independient
 | POST | `/api/login` | No | Inicia sesión y devuelve un token |
 | GET | `/api/me` | Bearer | Devuelve el usuario autenticado |
 | POST | `/api/logout` | Bearer | Revoca el token actual |
+| POST | `/api/forgot-password` | No | Envía un enlace de recuperación con respuesta genérica |
+| POST | `/api/reset-password` | No | Restablece la contraseña con el token del correo |
 
 ### Registro
 
@@ -286,6 +291,33 @@ curl -X POST http://127.0.0.1:8001/api/login \
 ```
 
 Respuesta `200 OK` con la misma estructura del registro. Si las credenciales fallan, responde `422` con el mensaje genérico en `errors.email`.
+
+### Recuperación de contraseña
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/forgot-password \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ana@test.local"}'
+```
+
+Respuesta `200 OK` con un mensaje genérico, exista o no la cuenta. Si existe, se envía un enlace a `FRONTEND_URL/reset-password`, válido durante 30 minutos y de un solo uso.
+
+```bash
+curl -X POST http://127.0.0.1:8001/api/reset-password \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "ana@test.local",
+    "token": "TOKEN_DEL_CORREO",
+    "password": "Nueva1234",
+    "password_confirmation": "Nueva1234"
+  }'
+```
+
+La nueva contraseña debe cumplir las reglas de registro. Un token inválido o expirado responde `422`. Al completar el cambio se invalidan los tokens de acceso existentes.
+
+La pantalla del frontend para esta recuperación queda pendiente; los endpoints del backend ya están disponibles.
 
 ### Perfil y cierre de sesión
 
@@ -346,7 +378,7 @@ Trabajamos con una rama por rol y `main` como integración:
 - `frontend`: equipo Frontend; vistas Blade, assets y pruebas web.
 - `testing`: QA/UI; pruebas, documentación y validación visual.
 - `main`: rama estable y protegida; recibe los PR de integración.
-- Cada integrante puede trabajar en su rama de rol o en una subrama `backend/<tarea>`, `frontend/<tarea>` o `testing/<tarea>`.
+- Cada integrante puede trabajar en su rama de rol o en una subrama `feat/backend-...`, `feat/frontend-...` o `test/...`.
 - Los PR hacia `main` requieren al menos una aprobación, CI en verde y squash merge.
 - `CODEOWNERS` asigna la revisión según la carpeta y el rol.
 - Las antiguas ramas `Backend`, `Frontend` y `Experimentar` quedaron archivadas en los tags `archive/*`.
