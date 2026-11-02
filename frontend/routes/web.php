@@ -12,6 +12,8 @@ Route::get('/', function () {
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 
+Route::view('/recuperar-cuenta', 'auth.password-recovery')->name('password.recovery');
+
 Route::get('/registro', [RegisterController::class, 'create'])->name('register');
 Route::post('/registro', [RegisterController::class, 'store'])->name('register.store');
 
