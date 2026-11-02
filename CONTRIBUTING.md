@@ -23,14 +23,17 @@ Luego configura los archivos `.env` de `backend/` y `frontend/` siguiendo el [RE
 
 ## Flujo de ramas
 
-Usamos una rama por rol:
+Usamos una rama por rol y dos ramas de integración:
 
 - `backend`: equipo Backend/BD (API, modelos, migraciones y pruebas de API).
 - `frontend`: equipo Frontend (Blade, CSS/JS y pruebas web).
 - `testing`: QA/UI (pruebas, documentación y validación visual).
-- `main`: integración estable y protegida.
+- `develop`: integración de los tres roles; destino de los PR de las ramas de rol.
+- `main`: solo versiones estables; recibe un PR de `develop` al cerrar el sprint.
 
-Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `feat/backend-...`, `feat/frontend-...` o `test/...` y fusionarla a su rama de rol.
+Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `feat/backend-...`, `feat/frontend-...` o `test/...`, fusionarla a su rama de rol y abrir un PR de esa rama a `develop`.
+
+El autor del PR resuelve los conflictos y hace el merge cuando esté aprobado. Los PR de `develop` a `main` los mergea el responsable de release al cerrar el sprint.
 
 Nombres permitidos:
 

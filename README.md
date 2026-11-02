@@ -368,18 +368,20 @@ cd backend && vendor/bin/pint
 cd frontend && vendor/bin/pint
 ```
 
-El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en push a `main`, `backend`, `frontend` y `testing`, y en pull requests hacia esas ramas.
+El flujo de integración continua está en [`.github/workflows/tests.yml`](.github/workflows/tests.yml) con dos jobs: backend y frontend. Se ejecuta en push a `main`, `develop`, `backend`, `frontend` y `testing`, y en pull requests hacia esas ramas.
 
 ## Ramas de trabajo
 
-Trabajamos con una rama por rol y `main` como integración:
+Trabajamos con una rama por rol, `develop` como integración y `main` para versiones estables:
 
 - `backend`: equipo Backend/BD; API, modelos, migraciones y pruebas de API.
 - `frontend`: equipo Frontend; vistas Blade, assets y pruebas web.
 - `testing`: QA/UI; pruebas, documentación y validación visual.
-- `main`: rama estable y protegida; recibe los PR de integración.
-- Cada integrante puede trabajar en su rama de rol o en una subrama `feat/backend-...`, `feat/frontend-...` o `test/...`.
-- Los PR hacia `main` requieren al menos una aprobación, CI en verde y squash merge.
+- `develop`: integración de los tres roles; recibe los PR de las ramas de rol y de las subramas.
+- `main`: solo versiones estables y protegidas; recibe un PR de `develop` al cerrar el sprint.
+- Cada integrante puede trabajar en su rama de rol o en una subrama `feat/...`, `test/...`, `docs/...`, `chore/...` o `hotfix/...`.
+- Los PR hacia `develop` y `main` requieren al menos una aprobación, CI en verde y squash merge.
+- El autor del PR resuelve los conflictos y hace el merge después de la aprobación.
 - `CODEOWNERS` asigna la revisión según la carpeta y el rol.
 - Las antiguas ramas `Backend`, `Frontend` y `Experimentar` quedaron archivadas en los tags `archive/*`.
 
