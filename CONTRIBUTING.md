@@ -33,7 +33,7 @@ Usamos una rama por rol y dos ramas de integración:
 
 Cada integrante puede trabajar directamente en su rama de rol para cambios pequeños o crear una subrama `feat/backend-...`, `feat/frontend-...` o `test/...`, fusionarla a su rama de rol y abrir un PR de esa rama a `develop`.
 
-El autor del PR resuelve los conflictos y hace el merge cuando esté aprobado. Los PR de `develop` a `main` los mergea el responsable de release al cerrar el sprint.
+El autor del PR resuelve los conflictos y mantiene la rama al día. Samuel revisa, aprueba y mergea; nadie mergea su propio PR. Los PR de `develop` a `main` los mergea Samuel al cerrar el sprint.
 
 Nombres permitidos:
 

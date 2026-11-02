@@ -381,7 +381,7 @@ Trabajamos con una rama por rol, `develop` como integración y `main` para versi
 - `main`: solo versiones estables y protegidas; recibe un PR de `develop` al cerrar el sprint.
 - Cada integrante puede trabajar en su rama de rol o en una subrama `feat/...`, `test/...`, `docs/...`, `chore/...` o `hotfix/...`.
 - Los PR hacia `develop` y `main` requieren al menos una aprobación, CI en verde y squash merge.
-- El autor del PR resuelve los conflictos y hace el merge después de la aprobación.
+- El autor del PR resuelve los conflictos y mantiene la rama al día; Samuel revisa, aprueba y mergea. Nadie mergea su propio PR.
 - `CODEOWNERS` asigna la revisión según la carpeta y el rol.
 - Las antiguas ramas `Backend`, `Frontend` y `Experimentar` quedaron archivadas en los tags `archive/*`.
 
