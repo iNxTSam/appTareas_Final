@@ -57,6 +57,12 @@
             >{{ $errors->first('password') }}</p>
         </div>
 
+        <div class="-mt-2 text-right">
+            <a href="{{ route('password.recovery') }}" class="text-sm font-semibold text-primario hover:text-primario-oscuro">
+                ¿Olvidaste tu contraseña?
+            </a>
+        </div>
+
         <button
             type="submit"
             class="w-full rounded-full bg-primario px-5 py-3 font-semibold text-white transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 disabled:cursor-not-allowed disabled:opacity-60"

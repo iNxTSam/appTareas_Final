@@ -38,4 +38,16 @@ class BackendApiClient
     {
         return $this->client()->withToken($token)->post('/api/logout');
     }
+
+    public function forgotPassword(string $email): Response
+    {
+        return $this->client()->post('/api/forgot-password', [
+            'email' => $email,
+        ]);
+    }
+
+    public function resetPassword(array $data): Response
+    {
+        return $this->client()->post('/api/reset-password', $data);
+    }
 }
