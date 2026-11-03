@@ -154,6 +154,18 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('errors.email.0', 'El correo o la contraseña no son correctos.');
     }
 
+    public function test_login_rejects_empty_fields(): void
+    {
+        $this->postJson('/api/login', [
+            'email' => '',
+            'password' => '',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password']);
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
     public function test_me_requires_authentication(): void
     {
         $this->getJson('/api/me')->assertUnauthorized();

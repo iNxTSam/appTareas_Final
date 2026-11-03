@@ -129,6 +129,54 @@ class AuthenticationComplianceTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_el_formulario_de_registro_muestra_los_cuatro_campos(): void
+    {
+        Http::fake();
+
+        $this->get('/registro')
+            ->assertOk()
+            ->assertSee('name="name"', false)
+            ->assertSee('name="email"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('name="password_confirmation"', false);
+    }
+
+    public function test_registro_rechaza_password_sin_mayuscula(): void
+    {
+        Http::fake();
+
+        $this->post('/registro', $this->registerPayload([
+            'password' => 'abcd1234',
+            'password_confirmation' => 'abcd1234',
+        ]))->assertSessionHasErrors('password');
+
+        Http::assertNothingSent();
+    }
+
+    public function test_registro_rechaza_password_sin_minuscula(): void
+    {
+        Http::fake();
+
+        $this->post('/registro', $this->registerPayload([
+            'password' => 'ABCD1234',
+            'password_confirmation' => 'ABCD1234',
+        ]))->assertSessionHasErrors('password');
+
+        Http::assertNothingSent();
+    }
+
+    public function test_registro_rechaza_password_sin_numero(): void
+    {
+        Http::fake();
+
+        $this->post('/registro', $this->registerPayload([
+            'password' => 'Abcdefgh',
+            'password_confirmation' => 'Abcdefgh',
+        ]))->assertSessionHasErrors('password');
+
+        Http::assertNothingSent();
+    }
+
     public function test_cp09_login_valido_guarda_token_y_redirige_al_panel(): void
     {
         Http::fake([
@@ -190,6 +238,17 @@ class AuthenticationComplianceTest extends TestCase
             ->assertSessionHasErrors(['email', 'password']);
 
         Http::assertNothingSent();
+    }
+
+    public function test_el_formulario_de_login_muestra_los_dos_campos(): void
+    {
+        Http::fake();
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('name="email"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('Ingresar');
     }
 
     public function test_cp13_panel_sin_sesion_redirige_al_login(): void
@@ -263,5 +322,40 @@ class AuthenticationComplianceTest extends TestCase
             'No se pudo conectar con el servidor. Inténtalo de nuevo.',
             session('errors')->first('email')
         );
+    }
+
+    public function test_el_panel_muestra_la_opcion_de_cerrar_sesion(): void
+    {
+        Http::fake([
+            'http://backend.test/api/me' => Http::response([
+                'user' => $this->sessionUser(),
+            ], 200),
+        ]);
+
+        $this->withSession([
+            'api_token' => 'test-token',
+            'api_user' => $this->sessionUser(),
+        ])->get('/panel')
+            ->assertOk()
+            ->assertSee('Cerrar sesión')
+            ->assertSee(route('logout'), false);
+    }
+
+    public function test_despues_de_cerrar_sesion_no_accede_al_panel(): void
+    {
+        Http::fake([
+            'http://backend.test/api/logout' => Http::response([
+                'message' => 'Sesión cerrada correctamente.',
+            ], 200),
+        ]);
+
+        $this->withSession([
+            'api_token' => 'test-token',
+            'api_user' => $this->sessionUser(),
+        ])->post('/logout')
+            ->assertRedirect(route('login'))
+            ->assertSessionMissing('api_token');
+
+        $this->get('/panel')->assertRedirect(route('login'));
     }
 }

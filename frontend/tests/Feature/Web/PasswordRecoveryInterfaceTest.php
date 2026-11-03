@@ -100,4 +100,18 @@ class PasswordRecoveryInterfaceTest extends TestCase
             session('errors')->first('email')
         );
     }
+
+    public function test_restablecer_contrasena_rechaza_password_debil(): void
+    {
+        Http::fake();
+
+        $this->post(route('password.reset.update'), [
+            'email' => 'ana@test.local',
+            'token' => 'token-prueba',
+            'password' => 'abc123',
+            'password_confirmation' => 'abc123',
+        ])->assertSessionHasErrors('password');
+
+        Http::assertNothingSent();
+    }
 }
