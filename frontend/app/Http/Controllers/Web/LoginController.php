@@ -31,7 +31,7 @@ class LoginController extends Controller
         $email = Str::lower(trim($credentials['email']));
 
         try {
-            $response = $this->api->login($email, $credentials['password']);
+            $response = $this->api->login($email, $credentials['password'], $request->ip());
         } catch (ConnectionException) {
             return back()->withErrors([
                 'email' => 'No se pudo conectar con el servidor. Inténtalo de nuevo.',
