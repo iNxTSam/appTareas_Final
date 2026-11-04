@@ -38,7 +38,7 @@ class LoginController extends Controller
             ])->onlyInput('email');
         }
 
-        if ($response->status() === 422) {
+        if (in_array($response->status(), [422, 429], true)) {
             return back()->withErrors(
                 $response->json('errors', ['email' => ['El correo o la contraseña no son correctos.']])
             )->onlyInput('email');
