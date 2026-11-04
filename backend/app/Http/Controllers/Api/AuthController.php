@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -62,13 +63,32 @@ class AuthController extends Controller
         ]);
 
         $email = Str::lower(trim($credentials['email']));
+        $key = 'login:'.$email.'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = max(1, RateLimiter::availableIn($key));
+            $minutos = (int) ceil($seconds / 60);
+            $mensaje = 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en '.$minutos.' '.($minutos === 1 ? 'minuto.' : 'minutos.');
+
+            return response()->json([
+                'message' => $mensaje,
+                'errors' => [
+                    'email' => [$mensaje],
+                ],
+            ], 429)->header('Retry-After', (string) $seconds);
+        }
+
         $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            RateLimiter::hit($key, 900);
+
             throw ValidationException::withMessages([
                 'email' => ['El correo o la contraseña no son correctos.'],
             ]);
         }
+
+        RateLimiter::clear($key);
 
         return response()->json([
             'message' => 'Inicio de sesión correcto.',
