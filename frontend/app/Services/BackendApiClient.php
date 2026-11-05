@@ -21,9 +21,15 @@ class BackendApiClient
         return $this->client()->post('/api/register', $data);
     }
 
-    public function login(string $email, string $password): Response
+    public function login(string $email, string $password, ?string $clientIp = null): Response
     {
-        return $this->client()->post('/api/login', [
+        $client = $this->client();
+
+        if ($clientIp !== null) {
+            $client = $client->withHeaders(['X-Forwarded-For' => $clientIp]);
+        }
+
+        return $client->post('/api/login', [
             'email' => $email,
             'password' => $password,
         ]);

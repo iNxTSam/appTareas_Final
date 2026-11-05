@@ -63,6 +63,21 @@ class AuthController extends Controller
         ]);
 
         $email = Str::lower(trim($credentials['email']));
+        $key = 'login:'.$email.'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = max(1, RateLimiter::availableIn($key));
+            $minutos = (int) ceil($seconds / 60);
+            $mensaje = 'Demasiados intentos de inicio de sesión. Inténtalo de nuevo en '.$minutos.' '.($minutos === 1 ? 'minuto.' : 'minutos.');
+
+            return response()->json([
+                'message' => $mensaje,
+                'errors' => [
+                    'email' => [$mensaje],
+                ],
+            ], 429)->header('Retry-After', (string) $seconds);
+        }
+
         $user = User::where('email', $email)->first();
         $key = Str::transLiterate('|' . $email . '|'.$request->ip());
 
