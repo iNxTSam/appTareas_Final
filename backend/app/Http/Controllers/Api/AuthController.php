@@ -79,15 +79,6 @@ class AuthController extends Controller
         }
 
         $user = User::where('email', $email)->first();
-        $key = Str::transLiterate('|' . $email . '|'.$request->ip());
-
-        if(RateLimiter::tooManyAttempts($key, 2)) {
-            $seconds = RateLimiter::availableIn($key);
-            $minutos = ceil($seconds / 60);
-            throw ValidationException::withMessages([
-                'email' => "Demasiados intentos de inicio de sesión. Inténtalo de nuevo en {$minutos} " . ($minutos == 1 ? 'minuto.' : 'minutos.'),
-            ])->status(429);
-        }
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
             RateLimiter::hit($key, 900);
