@@ -1,76 +1,101 @@
-        <dialog id="new-task-dialog" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl">
-            <form id="task-form" class="space-y-4 p-6 sm:p-8">
-                <div>
-                    <h2 class="text-2xl font-extrabold text-negro">Nueva tarea</h2>
-                    <p class="mt-1 text-sm text-slate-500">Agrega una tarea al espacio de {{ $displayName }}.</p>
-                </div>
-                <div>
-                    <label for="task-category" class="mb-1.5 block text-sm font-bold text-negro">Categoría</label>
-                    <input id="task-category" name="category" type="text" maxlength="80" placeholder="Ej. Diseño UI/UX" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                </div>
-                <div>
-                    <label for="task-team" class="mb-1.5 block text-sm font-bold text-negro">Equipo</label>
-                    <input id="task-team" name="team" type="text" maxlength="120" placeholder="Ej. Diseño" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                </div>
-                <div>
-                    <label for="task-responsible" class="mb-1.5 block text-sm font-bold text-negro">Responsable</label>
-                    <select
-                        id="task-responsible"
-                        name="responsible_id"
-                        class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20"
+        <dialog id="new-task-dialog" class="m-auto w-[calc(100%-1.5rem)] max-w-2xl overflow-hidden rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
+            <form id="task-form" class="flex max-h-[90vh] flex-col">
+                <header class="flex items-start justify-between gap-4 border-b border-gris/10 px-6 py-5 sm:px-8">
+                    <div class="min-w-0">
+                        <h2 id="task-form-title" class="text-2xl font-extrabold text-negro">Nueva tarea</h2>
+                        <p id="task-form-subtitle" class="mt-1 text-sm text-slate-500">Agrega una tarea al espacio de {{ $displayName }}.</p>
+                    </div>
+                    <button
+                        type="button"
+                        data-close-new-task
+                        aria-label="Cerrar formulario"
+                        class="btn-icon-outline h-9 w-9 text-lg leading-none"
                     >
-                        <option value="">Sin asignar</option>
-                        @foreach ($responsibles as $responsible)
-                            <option value="{{ $responsible['id'] }}">{{ $responsible['name'] }}</option>
-                        @endforeach
-                    </select>
+                        ×
+                    </button>
+                </header>
+
+                <div class="flex-1 space-y-4 overflow-y-auto px-6 py-5 sm:px-8">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="task-category" class="field-label">Categoría</label>
+                            <input id="task-category" name="category" type="text" maxlength="80" placeholder="Ej. Diseño UI/UX" class="field-input">
+                        </div>
+                        <div>
+                            <label for="task-team" class="field-label">Equipo</label>
+                            <input id="task-team" name="team" type="text" maxlength="60" placeholder="Ej. Diseño" class="field-input">
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="task-responsible" class="field-label">Responsable</label>
+                            <select id="task-responsible" name="responsible_id" class="field-input">
+                                <option value="">Sin asignar</option>
+                                @foreach ($responsibles as $responsible)
+                                    <option value="{{ $responsible['id'] }}">{{ $responsible['name'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="task-priority" class="field-label">Prioridad</label>
+                            <select id="task-priority" name="priority" class="field-input">
+                                <option value="low">Baja</option>
+                                <option value="medium" selected>Media</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="task-title" class="field-label">Tarea <span class="font-normal text-red-600">*</span></label>
+                        <input id="task-title" name="title" type="text" maxlength="120" required placeholder="Ej. Diseñar el dashboard" class="field-input">
+                    </div>
+
+                    <div>
+                        <label for="task-description" class="field-label">Descripción <span class="font-normal text-slate-500">(opcional)</span></label>
+                        <textarea id="task-description" name="description" rows="2" maxlength="1000" class="field-input"></textarea>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <label for="task-status" class="field-label">Estado</label>
+                            <select id="task-status" name="status" class="field-input">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_progreso">En progreso</option>
+                                <option value="completada">Completada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="task-start-date" class="field-label">Fecha de inicio</label>
+                            <input id="task-start-date" name="start_date" type="date" class="field-input">
+                        </div>
+                        <div>
+                            <label for="task-date" class="field-label">Fecha límite</label>
+                            <input id="task-date" name="due_date" type="date" class="field-input">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="task-subtasks" class="field-label">Subtareas <span class="font-normal text-slate-500">(una por línea)</span></label>
+                        <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="field-input"></textarea>
+                        <p class="mt-1 text-[11px] leading-5 text-slate-500">Al abrir esta tarea podrás asignar un responsable a cada subtarea.</p>
+                    </div>
+
+                    <p id="task-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700" role="alert"></p>
                 </div>
-                <div>
-                    <label for="task-title" class="mb-1.5 block text-sm font-bold text-negro">Tarea</label>
-                    <input id="task-title" name="title" type="text" maxlength="120" required placeholder="Ej. Diseñar el dashboard" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                </div>
-                <div>
-                    <label for="task-description" class="mb-1.5 block text-sm font-bold text-negro">Descripción <span class="font-normal text-slate-500">(opcional)</span></label>
-                    <textarea id="task-description" name="description" rows="2" maxlength="1000" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20"></textarea>
-                </div>
-                <div>
-                    <label for="task-status" class="mb-1.5 block text-sm font-bold text-negro">Estado</label>
-                    <select id="task-status" name="status" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="en_progreso">En progreso</option>
-                        <option value="completada">Completada</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="task-priority" class="mb-1.5 block text-sm font-bold text-negro">Prioridad</label>
-                    <select id="task-priority" name="priority" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                        <option value="low">Baja</option>
-                        <option value="medium" selected>Media</option>
-                        <option value="high">Alta</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="task-start-date" class="mb-1.5 block text-sm font-bold text-negro">Fecha de inicio <span class="font-normal text-slate-500">(opcional)</span></label>
-                    <input id="task-start-date" name="start_date" type="date" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                </div>
-                <div>
-                    <label for="task-date" class="mb-1.5 block text-sm font-bold text-negro">Fecha límite <span class="font-normal text-slate-500">(opcional)</span></label>
-                    <input id="task-date" name="due_date" type="date" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                </div>
-                <div>
-                    <label for="task-subtasks" class="mb-1.5 block text-sm font-bold text-negro">Subtareas <span class="font-normal text-slate-500">(una por línea)</span></label>
-                    <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20"></textarea>
-                    <p class="mt-1 text-[11px] leading-5 text-slate-500">Al abrir esta tarea podrás asignar un responsable a cada subtarea.</p>
-                </div>
-                <p class="text-xs leading-5 text-slate-500">Las tareas se guardan en tu cuenta.</p>
-                <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-                    <button type="button" data-close-new-task class="btn-outline">Cancelar</button>
-                    <button type="submit" class="btn-primary">Agregar tarea</button>
-                </div>
+
+                <footer class="flex flex-col-reverse gap-3 border-t border-gris/10 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                    <p class="text-xs leading-5 text-slate-500">Las tareas se guardan en tu cuenta.</p>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+                        <button type="button" data-close-new-task class="btn-outline">Cancelar</button>
+                        <button type="submit" id="task-submit" class="btn-primary min-w-36">Agregar tarea</button>
+                    </div>
+                </footer>
             </form>
         </dialog>
 
-        <dialog id="notifications-dialog" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl">
+        <dialog id="notifications-dialog" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
             <div class="p-6 sm:p-8">
                 <h2 class="text-2xl font-extrabold text-negro">Avisos</h2>
                 <p class="mt-1 text-sm text-slate-500">Tareas vencidas o con fecha límite próxima.</p>
@@ -82,7 +107,7 @@
             </div>
         </dialog>
 
-        <dialog id="profile-dialog" class="m-auto w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl">
+        <dialog id="profile-dialog" class="m-auto w-[calc(100%-2rem)] max-w-sm rounded-3xl border border-gris/10 bg-white p-0 shadow-2xl backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
             <div class="p-6 sm:p-8">
                 <h2 class="text-xl font-extrabold text-negro">Tu cuenta</h2>
                 <p class="mt-2 text-sm text-slate-600">Sesión iniciada como <span class="font-bold text-negro">{{ $displayName }}</span>.</p>
@@ -100,7 +125,7 @@
             </div>
         </dialog>
 
-        <dialog id="task-detail-modal" class="m-auto w-[calc(100%-2rem)] max-w-xl border-0 bg-transparent p-0 shadow-none">
+        <dialog id="task-detail-modal" class="m-auto w-[calc(100%-2rem)] max-w-xl border-0 bg-transparent p-0 shadow-none backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
             <div class="space-y-2">
                 <section class="relative overflow-hidden rounded-2xl border border-gris/30 bg-[#FFFAFA] shadow-lg">
                     <button
@@ -189,5 +214,10 @@
                         <button type="button" data-cancel-add-subtask class="btn-outline px-4 py-2 text-[10px]">Cancelar</button>
                     </form>
                 </section>
+
+                <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                    <button type="button" data-delete-task class="btn-danger">Eliminar tarea</button>
+                    <button type="button" data-edit-task class="btn-primary">Editar tarea</button>
+                </div>
             </div>
         </dialog>

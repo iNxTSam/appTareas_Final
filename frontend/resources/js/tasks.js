@@ -510,6 +510,12 @@ function setupTaskHeader(root) {
     const taskUrlTemplate = root.dataset.taskUrlTemplate;
     const taskForm = root.querySelector('#task-form');
     const taskTitleInput = taskForm.querySelector('#task-title');
+    const taskSubmitButton = taskForm.querySelector('#task-submit');
+    const taskFormTitle = taskForm.querySelector('#task-form-title');
+    const taskFormSubtitle = taskForm.querySelector('#task-form-subtitle');
+    const taskFormError = taskForm.querySelector('#task-form-error');
+    const taskFormSubtitleDefault = taskFormSubtitle.textContent;
+    const newTaskButtons = [...root.querySelectorAll('[data-open-new-task]')];
     const responsibleSelect = taskForm.querySelector('#task-responsible');
     const storageError = root.querySelector('#task-storage-error');
     const statusMessage = root.querySelector('#task-status');
@@ -518,7 +524,6 @@ function setupTaskHeader(root) {
     const profileDialog = root.querySelector('#profile-dialog');
     const detailDialog = root.querySelector('#task-detail-modal');
     const detailResponsibleSelect = detailDialog.querySelector('#detail-responsible-select');
-    const newTaskButton = root.querySelector('[data-open-new-task]');
     const activeTaskButton = root.querySelector('[data-open-active-task]');
     const viewButtons = [...root.querySelectorAll('[data-view-target]')];
     const views = {
@@ -540,6 +545,8 @@ function setupTaskHeader(root) {
     };
     let tasks = [];
     let isAvailable = false;
+    let editingTaskId = null;
+    let isSaving = false;
     let activeView = 'home';
     let selectedDate = toDateString(new Date());
     let homeMode = 'board';
@@ -552,7 +559,7 @@ function setupTaskHeader(root) {
         taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
             control.disabled = true;
         });
-        newTaskButton.disabled = true;
+        setNewTaskButtonsDisabled(true);
     };
 
     const announce = (message) => {
@@ -560,6 +567,22 @@ function setupTaskHeader(root) {
     };
 
     const taskUrl = (taskId) => taskUrlTemplate.replace('__task__', encodeURIComponent(taskId));
+
+    const setNewTaskButtonsDisabled = (disabled) => {
+        newTaskButtons.forEach((button) => {
+            button.disabled = disabled;
+        });
+    };
+
+    const showTaskFormError = (message) => {
+        taskFormError.textContent = message;
+        taskFormError.classList.remove('hidden');
+    };
+
+    const clearTaskFormError = () => {
+        taskFormError.textContent = '';
+        taskFormError.classList.add('hidden');
+    };
 
     const loadTasks = async () => {
         try {
@@ -569,7 +592,7 @@ function setupTaskHeader(root) {
             taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
                 control.disabled = false;
             });
-            newTaskButton.disabled = false;
+            setNewTaskButtonsDisabled(false);
             renderTaskViews();
             updateHeader();
 
@@ -773,7 +796,7 @@ function setupTaskHeader(root) {
         ];
         const taskColumns = statusColumns.map(({ status, title, color }) => {
             const column = document.createElement('section');
-            column.className = 'overflow-hidden rounded-2xl border border-primario/15 bg-white/80 shadow-sm';
+            column.className = 'flex min-h-[240px] flex-col overflow-hidden rounded-2xl border border-primario/15 bg-white/80 shadow-sm';
 
             const heading = document.createElement('h2');
             heading.className = `flex items-center justify-between ${color} px-4 py-4 text-xs font-extrabold uppercase tracking-wide text-negro`;
@@ -788,13 +811,13 @@ function setupTaskHeader(root) {
             heading.append(headingTitle, count);
 
             const list = document.createElement('div');
-            list.className = 'space-y-3 p-3';
+            list.className = 'flex-1 space-y-3 p-3';
 
             if (columnTasks.length > 0) {
                 list.replaceChildren(...columnTasks.map((task) => createBoardTaskCard(task, false)));
             } else {
                 const empty = document.createElement('p');
-                empty.className = 'px-2 py-6 text-center text-xs text-slate-400';
+                empty.className = 'flex h-full min-h-[140px] items-center justify-center rounded-xl border border-dashed border-gris/15 bg-fondo/70 px-3 py-6 text-center text-xs font-medium text-slate-400';
                 empty.textContent = 'Sin tareas';
                 list.append(empty);
             }
@@ -1022,66 +1045,141 @@ function setupTaskHeader(root) {
         }
     };
 
-    const addTask = async (formData) => {
+    const API_STATUS_BY_TASK_STATUS = {
+        INICIADO: 'pendiente',
+        PROCESO: 'en_progreso',
+        TERMINADOS: 'completada',
+    };
+
+    const buildSubtasksFromForm = (formData, baseTask) => {
+        const lines = String(formData.get('subtasks') || '')
+            .split(/\r?\n/)
+            .map((text) => text.trim())
+            .filter(Boolean);
+        const previous = baseTask?.subtasks ?? [];
+
+        return lines.map((text, index) => {
+            const match = previous.find((subtask) => subtask.text === text)
+                ?? (previous[index]?.text === text ? previous[index] : null);
+
+            return {
+                text,
+                done: match?.done ?? false,
+                responsible_id: match?.responsible_id ?? '',
+                responsible_name: match?.responsible_name ?? '',
+            };
+        });
+    };
+
+    const resetTaskForm = () => {
+        editingTaskId = null;
+        taskForm.reset();
+        taskFormTitle.textContent = 'Nueva tarea';
+        taskFormSubtitle.textContent = taskFormSubtitleDefault;
+        taskSubmitButton.textContent = 'Agregar tarea';
+        clearTaskFormError();
+        taskForm.querySelector('#task-start-date').value = toDateString(new Date());
+    };
+
+    const openTaskForm = (task = null) => {
+        if (!isAvailable) {
+            return;
+        }
+
+        resetTaskForm();
+
+        if (task) {
+            editingTaskId = task.id;
+            taskFormTitle.textContent = 'Editar tarea';
+            taskFormSubtitle.textContent = 'Actualiza los datos y guarda los cambios.';
+            taskSubmitButton.textContent = 'Guardar cambios';
+            taskForm.querySelector('#task-category').value = task.category === 'GENERAL' ? '' : task.category;
+            taskForm.querySelector('#task-team').value = task.team || '';
+            responsibleSelect.value = task.responsible_id || '';
+            taskForm.querySelector('#task-title').value = task.title;
+            taskForm.querySelector('#task-description').value = task.description || '';
+            taskForm.querySelector('#task-status').value = API_STATUS_BY_TASK_STATUS[task.status] ?? 'pendiente';
+            taskForm.querySelector('#task-priority').value = task.priority || 'medium';
+            taskForm.querySelector('#task-start-date').value = task.start_date || '';
+            taskForm.querySelector('#task-date').value = task.due_date || '';
+            taskForm.querySelector('#task-subtasks').value = task.subtasks.map((subtask) => subtask.text).join('\n');
+        }
+
+        newTaskDialog.showModal();
+        taskTitleInput.focus();
+    };
+
+    const saveTaskFromForm = async (formData) => {
         const title = String(formData.get('title') || '').trim();
 
         if (!title) {
-            taskTitleInput.setCustomValidity('Escribe una tarea antes de agregarla.');
+            taskTitleInput.setCustomValidity('Escribe una tarea antes de guardarla.');
             taskTitleInput.reportValidity();
 
             return false;
         }
 
         taskTitleInput.setCustomValidity('');
+        clearTaskFormError();
 
-        const subtasks = String(formData.get('subtasks') || '')
-            .split(/\r?\n/)
-            .map((text) => text.trim())
-            .filter(Boolean)
-            .map((text) => ({
-                text,
-                done: false,
-                responsible_id: '',
-                responsible_name: '',
-            }));
+        const baseTask = editingTaskId === null ? null : tasks.find((task) => task.id === editingTaskId);
+        const responsibleOption = responsibleSelect.selectedOptions[0];
         const task = normalizeTask({
-            id: createTaskId(),
+            id: baseTask?.id ?? createTaskId(),
             category: String(formData.get('category') || '').trim() || 'GENERAL',
             title,
             description: String(formData.get('description') || '').trim(),
-            status: String(formData.get('status') || 'INICIADO'),
+            status: String(formData.get('status') || 'pendiente'),
             priority: String(formData.get('priority') || 'medium'),
             team: String(formData.get('team') || '').trim(),
             responsible_id: String(formData.get('responsible_id') || ''),
-            responsible_name: responsibleSelect.selectedOptions[0]?.value
-                ? responsibleSelect.selectedOptions[0].textContent.trim()
-                : '',
-            subtasks,
+            responsible_name: responsibleOption?.value ? responsibleOption.textContent.trim() : '',
+            subtasks: buildSubtasksFromForm(formData, baseTask),
             start_date: String(formData.get('start_date') || ''),
             due_date: String(formData.get('due_date') || ''),
         });
 
         if (!task) {
-            setTaskError('Los datos de la tarea no son válidos y no se guardaron.');
+            showTaskFormError('Los datos de la tarea no son válidos. Revisa las fechas e inténtalo de nuevo.');
 
             return false;
         }
 
-        if (!await saveTasks([task, ...tasks])) {
+        const nextTasks = baseTask
+            ? tasks.map((item) => (item.id === baseTask.id ? task : item))
+            : [task, ...tasks];
+
+        if (!await saveTasks(nextTasks)) {
             return false;
         }
 
-        taskForm.reset();
+        announce(baseTask ? `Tarea actualizada: ${task.title}` : `Tarea agregada: ${task.title}`);
         newTaskDialog.close();
-        announce(`Tarea agregada: ${task.title}`);
 
         return true;
+    };
+
+    const deleteTask = async (task) => {
+        if (!task) {
+            return;
+        }
+
+        const confirmed = window.confirm(`¿Eliminar "${task.title}"? Esta acción no se puede deshacer.`);
+
+        if (!confirmed) {
+            return;
+        }
+
+        if (await saveTasks(tasks.filter((item) => item.id !== task.id))) {
+            detailDialog.close();
+            announce(`Tarea eliminada: ${task.title}`);
+        }
     };
 
     taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
         control.disabled = true;
     });
-    newTaskButton.disabled = true;
+    setNewTaskButtonsDisabled(true);
     void loadTasks();
 
     window.setInterval(updateHeader, 1000);
@@ -1194,25 +1292,40 @@ function setupTaskHeader(root) {
         profileDialog.close();
     });
 
-    newTaskButton.addEventListener('click', () => {
-        if (!isAvailable) {
-            return;
-        }
-
-        taskForm.querySelector('#task-start-date').value = toDateString(new Date());
-        newTaskDialog.showModal();
-        taskTitleInput.focus();
+    newTaskButtons.forEach((button) => {
+        button.addEventListener('click', () => openTaskForm());
     });
 
-    root.querySelector('[data-close-new-task]').addEventListener('click', () => {
-        newTaskDialog.close();
+    root.querySelectorAll('[data-close-new-task]').forEach((button) => {
+        button.addEventListener('click', () => {
+            newTaskDialog.close();
+            resetTaskForm();
+        });
     });
+
+    newTaskDialog.addEventListener('close', resetTaskForm);
 
     taskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        if (isAvailable) {
-            await addTask(new FormData(taskForm));
+        if (!isAvailable || isSaving) {
+            return;
+        }
+
+        isSaving = true;
+        taskSubmitButton.disabled = true;
+        const previousLabel = taskSubmitButton.textContent;
+        taskSubmitButton.textContent = editingTaskId === null ? 'Agregando…' : 'Guardando…';
+
+        const saved = await saveTaskFromForm(new FormData(taskForm));
+
+        isSaving = false;
+        taskSubmitButton.disabled = !isAvailable;
+
+        if (saved) {
+            resetTaskForm();
+        } else {
+            taskSubmitButton.textContent = previousLabel;
         }
     });
 
@@ -1266,6 +1379,23 @@ function setupTaskHeader(root) {
 
     detailDialog.querySelector('[data-close-detail]').addEventListener('click', () => {
         detailDialog.close();
+    });
+
+    detailDialog.querySelector('[data-edit-task]').addEventListener('click', () => {
+        const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
+
+        if (!task) {
+            return;
+        }
+
+        detailDialog.close();
+        openTaskForm(task);
+    });
+
+    detailDialog.querySelector('[data-delete-task]').addEventListener('click', () => {
+        const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
+
+        void deleteTask(task);
     });
 
     detailResponsibleSelect.addEventListener('change', async () => {

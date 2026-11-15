@@ -12,6 +12,8 @@
     --color-fondo: #FFFBFA;
     --color-primario: #8e2f42;
     --color-primario-oscuro: #6e2230;
+    --color-primario-suave: #F6D9E0;
+    --color-badgeGold: #E4B33D;
     --color-gris: #3e3e4a;
     --color-negro: #050505;
     --color-input: #f4f1f1;
@@ -53,5 +55,39 @@
 
     p {
         font-size: 16px;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-full bg-primario px-5 py-3 text-sm font-semibold text-white transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-outline {
+        @apply inline-flex items-center justify-center gap-2 rounded-full border border-primario/30 bg-white px-5 py-3 text-sm font-semibold text-primario transition hover:border-primario hover:bg-primario-suave/40 focus:outline-none focus:ring-2 focus:ring-primario/30 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-gris transition hover:bg-primario-suave/50 hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-icon-fill {
+        @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primario text-base text-white shadow-sm transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-icon-outline {
+        @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gris/20 bg-white text-gris transition hover:border-primario/40 hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 transition hover:border-red-400 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .field-label {
+        @apply mb-1.5 block text-sm font-bold text-negro;
+    }
+
+    .field-input {
+        @apply w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-2.5 text-sm text-negro outline-none transition focus:border-primario focus:ring-2 focus:ring-primario/20;
     }
 }
