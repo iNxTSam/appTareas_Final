@@ -4,11 +4,10 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\PanelController;
 use App\Http\Controllers\Web\PasswordRecoveryController;
 use App\Http\Controllers\Web\RegisterController;
+use App\Http\Controllers\Web\TaskController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::view('/', 'home')->name('home');
 
 Route::get('/login', [LoginController::class, 'create'])->name('login');
 Route::post('/login', [LoginController::class, 'store'])->name('login.store');
@@ -27,3 +26,14 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('backend
 Route::get('/panel', [PanelController::class, 'index'])
     ->middleware(['backend.auth', 'no-cache'])
     ->name('panel');
+
+Route::middleware(['backend.auth', 'no-cache'])
+    ->prefix('/tareas')
+    ->name('tasks.')
+    ->group(function () {
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+        Route::post('/', [TaskController::class, 'store'])->name('store');
+        Route::get('/{task}', [TaskController::class, 'show'])->name('show');
+        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+    });

@@ -2,6 +2,8 @@
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../views';
+@source '../js';
 
 @theme {
     --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
@@ -13,6 +15,9 @@
     --color-gris: #3e3e4a;
     --color-negro: #050505;
     --color-input: #f4f1f1;
+    --color-tab-iniciado: #F5E0E4;
+    --color-tab-proceso: #F7ECCD;
+    --color-tab-terminado: #DDEFE4;
 }
 
 @layer base {

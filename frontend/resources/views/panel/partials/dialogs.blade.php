@@ -9,6 +9,10 @@
                     <input id="task-category" name="category" type="text" maxlength="80" placeholder="Ej. Diseño UI/UX" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
                 </div>
                 <div>
+                    <label for="task-team" class="mb-1.5 block text-sm font-bold text-negro">Equipo</label>
+                    <input id="task-team" name="team" type="text" maxlength="120" placeholder="Ej. Diseño" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
+                </div>
+                <div>
                     <label for="task-responsible" class="mb-1.5 block text-sm font-bold text-negro">Responsable</label>
                     <select
                         id="task-responsible"
@@ -32,9 +36,17 @@
                 <div>
                     <label for="task-status" class="mb-1.5 block text-sm font-bold text-negro">Estado</label>
                     <select id="task-status" name="status" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
-                        <option value="INICIADO">Iniciado</option>
-                        <option value="PROCESO">En proceso</option>
-                        <option value="TERMINADOS">Terminado</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="en_progreso">En progreso</option>
+                        <option value="completada">Completada</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="task-priority" class="mb-1.5 block text-sm font-bold text-negro">Prioridad</label>
+                    <select id="task-priority" name="priority" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
+                        <option value="low">Baja</option>
+                        <option value="medium" selected>Media</option>
+                        <option value="high">Alta</option>
                     </select>
                 </div>
                 <div>
@@ -45,16 +57,12 @@
                     <label for="task-date" class="mb-1.5 block text-sm font-bold text-negro">Fecha límite <span class="font-normal text-slate-500">(opcional)</span></label>
                     <input id="task-date" name="due_date" type="date" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
                 </div>
-                <label class="flex items-center gap-3 text-sm font-semibold text-negro">
-                    <input id="task-important" name="is_important" type="checkbox" class="h-4 w-4 accent-primario">
-                    Marcar como importante
-                </label>
                 <div>
                     <label for="task-subtasks" class="mb-1.5 block text-sm font-bold text-negro">Subtareas <span class="font-normal text-slate-500">(una por línea)</span></label>
                     <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-3 text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20"></textarea>
                     <p class="mt-1 text-[11px] leading-5 text-slate-500">Al abrir esta tarea podrás asignar un responsable a cada subtarea.</p>
                 </div>
-                <p class="text-xs leading-5 text-slate-500">Las tareas se guardan localmente en este navegador.</p>
+                <p class="text-xs leading-5 text-slate-500">Las tareas se guardan en tu cuenta.</p>
                 <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
                     <button type="button" data-close-new-task class="btn-outline">Cancelar</button>
                     <button type="submit" class="btn-primary">Agregar tarea</button>

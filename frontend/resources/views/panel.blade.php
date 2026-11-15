@@ -1,33 +1,35 @@
 @extends('layouts.app')
 
-@section('title', 'Área privada')
+@php
+    $displayName = $apiUser['name'] ?? 'Usuario';
+    $email = $apiUser['email'] ?? '';
+    $responsibles = [
+        ['id' => 'nicolas', 'name' => 'Nicolas'],
+        ['id' => 'daniel', 'name' => 'Daniel'],
+        ['id' => 'samuel', 'name' => 'Samuel'],
+        ['id' => 'feipe', 'name' => 'Feipe'],
+        ['id' => 'jse', 'name' => 'Jse'],
+    ];
+@endphp
+
+@section('title', 'AppTareas')
+@section('body-class', 'min-h-screen bg-fondo text-negro')
+@section('main-class', 'w-full')
 
 @section('content')
-    <h1 class="text-primario mb-1">Área privada</h1>
-    <p class="text-gris mb-8 font-medium">Has iniciado sesión correctamente.</p>
+    <div
+        id="task-app"
+        class="flex min-h-screen flex-col overflow-x-hidden"
+        data-tasks-url="{{ route('tasks.index') }}"
+        data-task-url-template="{{ route('tasks.show', ['task' => '__task__']) }}"
+    >
+        @include('panel.partials.header')
+        @include('panel.partials.navigation')
+        @include('panel.partials.views')
 
-    @if (session('success'))
-        <p class="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('success') }}</p>
-    @endif
+        <p id="task-storage-error" class="mx-auto mb-4 hidden w-full max-w-3xl rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm leading-6 text-red-800" role="alert"></p>
+        <p id="task-status" class="sr-only" role="status" aria-live="polite"></p>
 
-    @if (! empty($apiError))
-        <p class="mb-4 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700">{{ $apiError }}</p>
-    @endif
-
-    <div class="rounded-2xl border border-gris/20 bg-white p-6 shadow-sm">
-        <p class="text-negro">
-            Hola, <span class="font-semibold text-primario">{{ $apiUser['name'] ?? 'Usuario' }}</span>.
-        </p>
-        <p class="mt-2 text-gris">Bienvenido a tu área privada.</p>
+        @include('panel.partials.dialogs')
     </div>
-
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
-        @csrf
-        <button
-            type="submit"
-            class="w-full rounded-full border border-primario px-5 py-3 font-semibold text-primario transition hover:bg-primario hover:text-white focus:outline-none focus:ring-2 focus:ring-primario/40"
-        >
-            Cerrar sesión
-        </button>
-    </form>
 @endsection

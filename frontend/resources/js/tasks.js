@@ -1,9 +1,16 @@
 const TASK_STATUSES = {
-    INICIADO: 'Iniciado',
-    PROCESO: 'En proceso',
-    TERMINADOS: 'Terminado',
+    INICIADO: 'Pendiente',
+    PROCESO: 'En progreso',
+    TERMINADOS: 'Completada',
 };
 
+const API_TASK_STATUSES = {
+    INICIADO: 'pendiente',
+    PROCESO: 'en_progreso',
+    TERMINADOS: 'completada',
+};
+
+const TASK_PRIORITIES = ['low', 'medium', 'high'];
 const NOTIFICATION_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function createTaskId() {
@@ -114,24 +121,42 @@ function calculateProgress(subtasks, status) {
     return Math.round((completedCount / subtasks.length) * 100);
 }
 
+function normalizeTaskStatus(value) {
+    const status = String(value || '').toLowerCase();
+
+    return ({
+        pendiente: 'INICIADO',
+        pending: 'INICIADO',
+        iniciado: 'INICIADO',
+        en_progreso: 'PROCESO',
+        in_progress: 'PROCESO',
+        proceso: 'PROCESO',
+        completada: 'TERMINADOS',
+        completed: 'TERMINADOS',
+        terminado: 'TERMINADOS',
+        terminados: 'TERMINADOS',
+    })[status] || null;
+}
+
 function normalizeTask(value) {
     if (value === null || typeof value !== 'object' || !['string', 'number'].includes(typeof value.id)) {
         return null;
     }
 
     const status = typeof value.status === 'string'
-        ? value.status.toUpperCase()
+        ? normalizeTaskStatus(value.status)
         : value.completed === true
             ? 'TERMINADOS'
             : 'INICIADO';
 
-    if (!Object.hasOwn(TASK_STATUSES, status) || typeof value.title !== 'string') {
+    if (!status || typeof value.title !== 'string') {
         return null;
     }
 
     const subtasks = normalizeSubtasks(value.subtasks);
     const startDate = normalizeDate(value.start_date ?? value.startDate ?? value.start);
     const dueDate = normalizeDate(value.due_date ?? value.dueDate ?? value.end);
+    const priority = String(value.priority ?? (value.is_important === true || value.important === true ? 'high' : 'medium')).toLowerCase();
     const responsibleId = value.responsible_id === null || value.responsible_id === undefined || value.responsible_id === ''
         ? ''
         : String(value.responsible_id);
@@ -142,6 +167,7 @@ function normalizeTask(value) {
         subtasks === null
         || startDate === null
         || dueDate === null
+        || !TASK_PRIORITIES.includes(priority)
         || !Number.isFinite(progress)
         || progress < 0
         || progress > 100
@@ -155,7 +181,13 @@ function normalizeTask(value) {
         title: value.title,
         description: String(value.description ?? ''),
         status,
-        is_important: value.is_important === true || value.important === true || value.priority === 'high',
+        priority,
+        team: typeof value.team === 'string'
+            ? value.team
+            : typeof value.team?.name === 'string'
+                ? value.team.name
+                : '',
+        is_important: priority === 'high' || value.is_important === true || value.important === true,
         subtasks,
         progress_percentage: Math.round(progress),
         start_date: startDate,
@@ -163,6 +195,92 @@ function normalizeTask(value) {
         responsible_id: responsibleId,
         responsible_name: typeof value.responsible_name === 'string' ? value.responsible_name : '',
     };
+}
+
+function normalizeTaskCollection(payload) {
+    const values = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+            ? payload.data
+            : Array.isArray(payload?.tasks)
+                ? payload.tasks
+                : null;
+
+    if (values === null) {
+        throw new Error('El servidor devolvió una lista de tareas con formato inválido.');
+    }
+
+    const normalized = values.map(normalizeTask);
+
+    if (normalized.some((task) => task === null)) {
+        throw new Error('El servidor devolvió una tarea con datos inválidos.');
+    }
+
+    return normalized;
+}
+
+function serializeTaskForApi(task) {
+    return {
+        category: task.category,
+        title: task.title,
+        description: task.description,
+        status: API_TASK_STATUSES[task.status],
+        priority: task.priority,
+        team: task.team,
+        start_date: task.start_date || null,
+        due_date: task.due_date || null,
+        responsible_id: task.responsible_id || null,
+        responsible_name: task.responsible_name || null,
+        subtasks: task.subtasks,
+    };
+}
+
+async function requestTaskApi(method, url, data = null) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    const headers = { Accept: 'application/json' };
+    const options = {
+        method,
+        credentials: 'same-origin',
+        headers,
+    };
+
+    if (!['GET', 'HEAD'].includes(method)) {
+        headers['X-CSRF-TOKEN'] = csrfToken || '';
+    }
+
+    if (data !== null) {
+        headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(data);
+    }
+
+    let response;
+
+    try {
+        response = await window.fetch(url, options);
+    } catch {
+        throw new Error('No se pudo conectar con el servidor de tareas.');
+    }
+
+    let payload = null;
+
+    if (response.status !== 204) {
+        try {
+            payload = await response.json();
+        } catch {
+            throw new Error('El servidor devolvió una respuesta de tareas inválida.');
+        }
+    }
+
+    if (!response.ok) {
+        const validationMessage = payload?.errors && typeof payload.errors === 'object'
+            ? Object.values(payload.errors).flat().find((message) => typeof message === 'string')
+            : null;
+        const message = validationMessage || payload?.message;
+
+        throw new Error(typeof message === 'string' ? message : 'No se pudo completar la operación de tareas.');
+    }
+
+    return payload;
 }
 
 function formatDueDate(value) {
@@ -296,17 +414,25 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     const statusBadge = document.createElement('span');
     statusBadge.className = 'inline-flex items-center rounded-full border border-white/20 bg-[#EAF8F1] px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.15em] text-[#1A7A54]';
-    statusBadge.textContent = task.status === 'TERMINADOS' ? 'Terminado' : task.status === 'PROCESO' ? 'En proceso' : 'Iniciado';
+    statusBadge.textContent = TASK_STATUSES[task.status];
 
     const priorityBadge = document.createElement('span');
     priorityBadge.className = 'inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.15em] text-white';
-    priorityBadge.textContent = task.is_important ? 'Importante' : 'Normal';
+    priorityBadge.textContent = task.priority === 'high'
+        ? 'Alta'
+        : task.priority === 'low'
+            ? 'Baja'
+            : 'Media';
 
     statusGroup.append(statusBadge, priorityBadge);
 
     const title = document.createElement('h3');
     title.className = 'mt-3 text-[19px] font-extrabold uppercase leading-tight tracking-tight text-white';
     title.textContent = task.title;
+
+    const team = document.createElement('p');
+    team.className = 'mt-1 truncate text-[9px] font-semibold uppercase tracking-wide text-white/75';
+    team.textContent = `Equipo: ${task.team || 'Sin equipo'}`;
 
     const meta = document.createElement('div');
     meta.className = 'mt-3 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-white/80';
@@ -374,13 +500,14 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     footer.append(assignment, action);
     header.append(statusGroup);
-    card.append(header, title, meta, progressTrack, dateGrid, footer);
+    card.append(header, title, team, meta, progressTrack, dateGrid, footer);
 
     return card;
 }
 
 function setupTaskHeader(root) {
-    const storageKey = root.dataset.storageKey;
+    const tasksUrl = root.dataset.tasksUrl;
+    const taskUrlTemplate = root.dataset.taskUrlTemplate;
     const taskForm = root.querySelector('#task-form');
     const taskTitleInput = taskForm.querySelector('#task-title');
     const responsibleSelect = taskForm.querySelector('#task-responsible');
@@ -412,13 +539,13 @@ function setupTaskHeader(root) {
         seconds: root.querySelector('#timer-seconds'),
     };
     let tasks = [];
-    let isAvailable = true;
+    let isAvailable = false;
     let activeView = 'home';
     let selectedDate = toDateString(new Date());
     let homeMode = 'board';
     let displayedCalendarMonth = startOfMonth(selectedDate);
 
-    const setStorageError = (message) => {
+    const setTaskError = (message) => {
         isAvailable = false;
         storageError.textContent = message;
         storageError.classList.remove('hidden');
@@ -432,18 +559,59 @@ function setupTaskHeader(root) {
         statusMessage.textContent = message;
     };
 
-    const saveTasks = (nextTasks) => {
+    const taskUrl = (taskId) => taskUrlTemplate.replace('__task__', encodeURIComponent(taskId));
+
+    const loadTasks = async () => {
         try {
-            window.localStorage.setItem(storageKey, JSON.stringify(nextTasks));
-        } catch {
-            setStorageError('No se pudieron guardar tus tareas. Revisa el almacenamiento disponible en este navegador.');
+            tasks = normalizeTaskCollection(await requestTaskApi('GET', tasksUrl));
+            isAvailable = true;
+            storageError.classList.add('hidden');
+            taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
+                control.disabled = false;
+            });
+            newTaskButton.disabled = false;
+            renderTaskViews();
+            updateHeader();
+
+            return true;
+        } catch (error) {
+            setTaskError(error instanceof Error ? error.message : 'No se pudieron cargar las tareas.');
+
+            return false;
+        }
+    };
+
+    const saveTasks = async (nextTasks) => {
+        const added = nextTasks.filter((nextTask) => !tasks.some((task) => task.id === nextTask.id));
+        const removed = tasks.filter((task) => !nextTasks.some((nextTask) => nextTask.id === task.id));
+        const updated = nextTasks.filter((nextTask) => {
+            const currentTask = tasks.find((task) => task.id === nextTask.id);
+
+            return currentTask && JSON.stringify(currentTask) !== JSON.stringify(nextTask);
+        });
+        const changes = added.length + removed.length + updated.length;
+
+        if (changes !== 1) {
+            setTaskError('No se pudo identificar una única tarea para guardar.');
 
             return false;
         }
 
-        tasks = nextTasks;
+        try {
+            if (added.length === 1) {
+                await requestTaskApi('POST', tasksUrl, serializeTaskForApi(added[0]));
+            } else if (removed.length === 1) {
+                await requestTaskApi('DELETE', taskUrl(removed[0].id));
+            } else {
+                await requestTaskApi('PUT', taskUrl(updated[0].id), serializeTaskForApi(updated[0]));
+            }
 
-        return true;
+            return await loadTasks();
+        } catch (error) {
+            setTaskError(error instanceof Error ? error.message : 'No se pudo guardar la tarea.');
+
+            return false;
+        }
     };
 
     const updateNavigation = () => {
@@ -599,9 +767,9 @@ function setupTaskHeader(root) {
             return first.due_date.localeCompare(second.due_date);
         });
         const statusColumns = [
-            { status: 'INICIADO', title: 'Iniciado', color: 'bg-tabIniciado' },
-            { status: 'PROCESO', title: 'Proceso', color: 'bg-tabProceso' },
-            { status: 'TERMINADOS', title: 'Terminados', color: 'bg-tabTerminado' },
+            { status: 'INICIADO', title: 'Pendiente', color: 'bg-tab-iniciado' },
+            { status: 'PROCESO', title: 'En progreso', color: 'bg-tab-proceso' },
+            { status: 'TERMINADOS', title: 'Completadas', color: 'bg-tab-terminado' },
         ];
         const taskColumns = statusColumns.map(({ status, title, color }) => {
             const column = document.createElement('section');
@@ -854,7 +1022,7 @@ function setupTaskHeader(root) {
         }
     };
 
-    const addTask = (formData) => {
+    const addTask = async (formData) => {
         const title = String(formData.get('title') || '').trim();
 
         if (!title) {
@@ -882,72 +1050,39 @@ function setupTaskHeader(root) {
             title,
             description: String(formData.get('description') || '').trim(),
             status: String(formData.get('status') || 'INICIADO'),
+            priority: String(formData.get('priority') || 'medium'),
+            team: String(formData.get('team') || '').trim(),
             responsible_id: String(formData.get('responsible_id') || ''),
             responsible_name: responsibleSelect.selectedOptions[0]?.value
                 ? responsibleSelect.selectedOptions[0].textContent.trim()
                 : '',
-            is_important: formData.has('is_important'),
             subtasks,
             start_date: String(formData.get('start_date') || ''),
             due_date: String(formData.get('due_date') || ''),
         });
 
         if (!task) {
-            setStorageError('Los datos de la tarea no son válidos y no se guardaron.');
+            setTaskError('Los datos de la tarea no son válidos y no se guardaron.');
 
             return false;
         }
 
-        if (!saveTasks([task, ...tasks])) {
+        if (!await saveTasks([task, ...tasks])) {
             return false;
         }
 
         taskForm.reset();
         newTaskDialog.close();
-        renderTaskViews();
-        updateHeader();
         announce(`Tarea agregada: ${task.title}`);
 
         return true;
     };
 
-    let storedTasks;
-
-    try {
-        const savedValue = window.localStorage.getItem(storageKey);
-
-        if (savedValue === null) {
-            storedTasks = [];
-        } else {
-            let parsedTasks;
-
-            try {
-                parsedTasks = JSON.parse(savedValue);
-            } catch {
-                setStorageError('No se pudieron leer tus tareas guardadas. No se modificaron los datos del navegador.');
-                return;
-            }
-
-            if (!Array.isArray(parsedTasks)) {
-                setStorageError('El formato de las tareas guardadas no es válido. No se modificaron los datos del navegador.');
-                return;
-            }
-
-            storedTasks = parsedTasks.map(normalizeTask);
-
-            if (storedTasks.some((task) => task === null)) {
-                setStorageError('Una tarea guardada tiene datos incompletos. No se modificaron los datos del navegador.');
-                return;
-            }
-        }
-    } catch {
-        setStorageError('No se pudo acceder al almacenamiento de tareas del navegador. Revisa la configuración de privacidad.');
-        return;
-    }
-
-    tasks = storedTasks;
-    renderTaskViews();
-    updateHeader();
+    taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
+        control.disabled = true;
+    });
+    newTaskButton.disabled = true;
+    void loadTasks();
 
     window.setInterval(updateHeader, 1000);
 
@@ -1073,11 +1208,11 @@ function setupTaskHeader(root) {
         newTaskDialog.close();
     });
 
-    taskForm.addEventListener('submit', (event) => {
+    taskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         if (isAvailable) {
-            addTask(new FormData(taskForm));
+            await addTask(new FormData(taskForm));
         }
     });
 
@@ -1133,7 +1268,7 @@ function setupTaskHeader(root) {
         detailDialog.close();
     });
 
-    detailResponsibleSelect.addEventListener('change', () => {
+    detailResponsibleSelect.addEventListener('change', async () => {
         const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
 
         if (!isAvailable || !task) {
@@ -1151,9 +1286,7 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === task.id ? updatedTask : item));
 
-        if (saveTasks(nextTasks)) {
-            renderTaskViews();
-            updateHeader();
+        if (await saveTasks(nextTasks)) {
             announce(responsibleName
                 ? `Responsable actualizado: ${responsibleName}`
                 : 'Se quitó el responsable de la tarea.');
@@ -1177,7 +1310,7 @@ function setupTaskHeader(root) {
         openSubtaskFormButton.classList.remove('hidden');
     });
 
-    subtaskForm.addEventListener('submit', (event) => {
+    subtaskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const text = subtaskInput.value.trim();
@@ -1206,15 +1339,13 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === task.id ? updatedTask : item));
 
-        if (saveTasks(nextTasks)) {
-            renderTaskViews();
-            updateHeader();
-            fillDetailDialog(updatedTask);
+        if (await saveTasks(nextTasks)) {
+            fillDetailDialog(tasks.find((item) => item.id === task.id) || updatedTask);
             announce(`Tarea agregada: ${text}`);
         }
     });
 
-    detailDialog.addEventListener('change', (event) => {
+    detailDialog.addEventListener('change', async (event) => {
         if (event.target instanceof HTMLSelectElement && event.target.matches('[data-subtask-task-id]')) {
             const taskId = event.target.dataset.subtaskTaskId;
             const subtaskIndex = Number(event.target.dataset.subtaskIndex);
@@ -1236,9 +1367,7 @@ function setupTaskHeader(root) {
             const updatedTask = { ...task, subtasks };
             const nextTasks = tasks.map((item) => (item.id === taskId ? updatedTask : item));
 
-            if (saveTasks(nextTasks)) {
-                renderTaskViews();
-                updateHeader();
+            if (await saveTasks(nextTasks)) {
                 announce(responsibleName
                     ? `Responsable actualizado: ${responsibleName}`
                     : 'Se quitó el responsable de la subtarea.');
@@ -1269,17 +1398,15 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === taskId ? updatedTask : item));
 
-        if (saveTasks(nextTasks)) {
-            renderTaskViews();
-            updateHeader();
-            fillDetailDialog(updatedTask);
+        if (await saveTasks(nextTasks)) {
+            fillDetailDialog(tasks.find((item) => item.id === task.id) || updatedTask);
             announce(`Avance actualizado: ${updatedTask.title}`);
         }
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const taskApp = document.querySelector('[data-storage-key]');
+    const taskApp = document.querySelector('#task-app[data-tasks-url]');
 
     if (taskApp) {
         setupTaskHeader(taskApp);

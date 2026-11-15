@@ -40,6 +40,31 @@ class BackendApiClient
         return $this->client()->withToken($token)->get('/api/me');
     }
 
+    public function tasks(string $token, array $filters = []): Response
+    {
+        return $this->client()->withToken($token)->get('/api/tasks', $filters);
+    }
+
+    public function createTask(string $token, array $data): Response
+    {
+        return $this->client()->withToken($token)->post('/api/tasks', $data);
+    }
+
+    public function task(string $token, string $id): Response
+    {
+        return $this->client()->withToken($token)->get('/api/tasks/'.rawurlencode($id));
+    }
+
+    public function updateTask(string $token, string $id, array $data): Response
+    {
+        return $this->client()->withToken($token)->put('/api/tasks/'.rawurlencode($id), $data);
+    }
+
+    public function deleteTask(string $token, string $id): Response
+    {
+        return $this->client()->withToken($token)->delete('/api/tasks/'.rawurlencode($id));
+    }
+
     public function logout(string $token): Response
     {
         return $this->client()->withToken($token)->post('/api/logout');
