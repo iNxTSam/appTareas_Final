@@ -58,8 +58,7 @@ appTareas_Final/
 │   ├── .env.example
 │   └── Dockerfile
 ├── docs/
-│   ├── Product & Sprint Backlog.xlsx
-│   └── despliegue.md
+│   └── Product & Sprint Backlog.xlsx
 ├── .github/
 │   ├── CODEOWNERS
 │   ├── pull_request_template.md
@@ -201,7 +200,7 @@ Detén todo con `Ctrl+C`.
 3. Edita:
 
    - `.env` (raíz): `DB_PASSWORD`, `FRONTEND_PORT` y `FRONTEND_APP_URL` con la URL o IP pública.
-   - `backend/.env`: `APP_KEY`, las variables `MAIL_*` (ver [docs/despliegue.md](docs/despliegue.md#correo)) y, opcionalmente, `DB_PASSWORD` (Compose lo toma de la raíz).
+   - `backend/.env`: `APP_KEY`, las variables `MAIL_*` (ver [backend/.env.production.example](backend/.env.production.example)) y, opcionalmente, `DB_PASSWORD` (Compose lo toma de la raíz).
    - `frontend/.env`: `APP_KEY`; `APP_URL` se sobrescribe con `FRONTEND_APP_URL` en Compose.
 
    Sin `MAIL_*`, el enlace de recuperación se escribe en el log y no llega al usuario.
@@ -399,7 +398,6 @@ Trabajamos con una rama por rol, `develop` como integración y `main` para versi
 ## Documentación
 
 - [`docs/Product & Sprint Backlog.xlsx`](docs/Product%20%26%20Sprint%20Backlog.xlsx): historias de usuario, criterios de aceptación, plan de pruebas y KPI.
-- [`docs/despliegue.md`](docs/despliegue.md): despliegue en Oracle Cloud con Docker.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md): roles, ramas, commits y revisión.
 
 ## Seguridad
