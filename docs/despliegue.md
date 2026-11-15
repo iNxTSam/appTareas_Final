@@ -48,7 +48,42 @@ Pega la primera en `APP_KEY` de `backend/.env` y la segunda en `APP_KEY` de `fro
 Edita:
 
 - `.env` (raíz): `DB_PASSWORD`, `FRONTEND_PORT` y `FRONTEND_APP_URL` con la IP o dominio público.
+- `backend/.env`: `APP_KEY` y las variables `MAIL_*` de la sección de correo.
 - `frontend/.env`: `APP_KEY`; `APP_URL` se sobrescribe con `FRONTEND_APP_URL` en Compose.
+
+### Correo
+
+La recuperación de contraseña necesita un correo real. Si dejas
+`MAIL_MAILER=log`, el enlace se escribe en `storage/logs/laravel.log` y el
+usuario nunca lo recibe.
+
+El proyecto usa la cuenta de Gmail `app.tareas.noreply@gmail.com` con una
+contraseña de aplicación. En `backend/.env` define:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=app.tareas.noreply@gmail.com
+MAIL_PASSWORD=la_contrasena_de_aplicacion
+MAIL_FROM_ADDRESS="app.tareas.noreply@gmail.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+La contraseña de aplicación se genera en la cuenta de Google (Seguridad >
+Verificación en dos pasos > Contraseñas de aplicaciones). No es la contraseña
+normal de Gmail y no debe subirse al repositorio: `backend/.env` está ignorado
+por Git.
+
+Comprueba el envío con un correo real:
+
+```bash
+docker compose -f compose.yaml exec backend php artisan tinker --execute="Mail::raw('Prueba de correo', function (\$m) { \$m->to('destino@ejemplo.com')->subject('Prueba App Tareas'); });"
+```
+
+Si el comando termina sin error, el SMTP quedó configurado. Revisa también la
+bandeja de spam.
 
 ## 4. Construir y levantar
 

@@ -201,8 +201,10 @@ Detén todo con `Ctrl+C`.
 3. Edita:
 
    - `.env` (raíz): `DB_PASSWORD`, `FRONTEND_PORT` y `FRONTEND_APP_URL` con la URL o IP pública.
-   - `backend/.env`: `APP_KEY` y, opcionalmente, `DB_PASSWORD` (Compose lo toma de la raíz).
+   - `backend/.env`: `APP_KEY`, las variables `MAIL_*` (ver [docs/despliegue.md](docs/despliegue.md#correo)) y, opcionalmente, `DB_PASSWORD` (Compose lo toma de la raíz).
    - `frontend/.env`: `APP_KEY`; `APP_URL` se sobrescribe con `FRONTEND_APP_URL` en Compose.
+
+   Sin `MAIL_*`, el enlace de recuperación se escribe en el log y no llega al usuario.
 
 4. Construye y levanta:
 
