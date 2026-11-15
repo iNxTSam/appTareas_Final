@@ -361,7 +361,16 @@ cd frontend
 php artisan test
 ```
 
-La suite actual suma **32 pruebas**: 14 del backend (API y hash de contraseña) y 18 del frontend (flujo Blade con la API simulada).
+La suite actual suma **69 pruebas**: 26 del backend (API, autenticación y notificación de recuperación) y 43 del frontend (flujo Blade con la API simulada y rutas de error). La cobertura de `app/` es **100 %** en ambas aplicaciones.
+
+Para medir cobertura se requiere Xdebug con `xdebug.mode=coverage`:
+
+```bash
+cd backend && php artisan test --coverage
+cd frontend && php artisan test --coverage
+```
+
+El reporte HTML se genera con `php vendor/bin/phpunit --coverage-html coverage` y queda en `coverage/index.html` (ignorado por Git).
 
 También puedes ejecutar el formateador desde cada aplicación:
 
