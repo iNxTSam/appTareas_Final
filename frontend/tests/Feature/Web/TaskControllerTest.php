@@ -4,6 +4,7 @@ namespace Tests\Feature\Web;
 
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -31,6 +32,48 @@ class TaskControllerTest extends TestCase
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function apiTask(): array
+    {
+        return [
+            'id' => 42,
+            'name' => 'Preparar el tablero',
+            'description' => 'Tareas de la semana',
+            'start_date' => '2026-11-15',
+            'end_date' => '2026-11-20',
+            'status' => 'en_progreso',
+            'status_label' => 'En progreso',
+            'priority' => 'importante',
+            'priority_label' => 'Importante',
+            'team' => 'Producto',
+            'created_at' => '2026-11-15T10:00:00+00:00',
+            'updated_at' => '2026-11-15T10:00:00+00:00',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function uiTask(): array
+    {
+        return [
+            'id' => 42,
+            'title' => 'Preparar el tablero',
+            'description' => 'Tareas de la semana',
+            'status' => 'en_progreso',
+            'status_label' => 'En progreso',
+            'priority' => 'high',
+            'priority_label' => 'Importante',
+            'team' => 'Producto',
+            'start_date' => '2026-11-15',
+            'due_date' => '2026-11-20',
+            'created_at' => '2026-11-15T10:00:00+00:00',
+            'updated_at' => '2026-11-15T10:00:00+00:00',
+        ];
+    }
+
     public function test_task_listing_forwards_filters_and_session_token(): void
     {
         Http::fake([
@@ -50,49 +93,113 @@ class TaskControllerTest extends TestCase
         Http::assertSent(fn ($request) => $request->method() === 'GET'
             && str_starts_with($request->url(), 'http://backend.test/api/tasks?')
             && str_contains($request->url(), 'status=pendiente')
-            && str_contains($request->url(), 'priority=high')
+            && str_contains($request->url(), 'priority=importante')
             && $request->hasHeader('Authorization', 'Bearer test-token'));
     }
 
-    public function test_task_creation_forwards_validated_fields_and_session_token(): void
+    public function test_task_listing_maps_api_fields_to_the_ui_contract(): void
     {
         Http::fake([
-            'http://backend.test/api/tasks' => Http::response(['id' => 42], 201),
+            'http://backend.test/api/tasks*' => Http::response(['data' => [$this->apiTask()]]),
         ]);
-        $task = [
-            'title' => 'Preparar el tablero',
-            'description' => 'Tareas de la semana',
-            'category' => 'Diseño',
-            'status' => 'en_progreso',
-            'priority' => 'high',
-            'team' => 'Producto',
-            'start_date' => '2026-11-15',
-            'due_date' => '2026-11-20',
-        ];
 
         $this->withSession($this->sessionData())
-            ->postJson(route('tasks.store'), $task)
+            ->getJson(route('tasks.index'))
+            ->assertOk()
+            ->assertExactJson(['data' => [$this->uiTask()]]);
+    }
+
+    public function test_task_creation_forwards_the_api_contract_and_maps_the_response(): void
+    {
+        Http::fake([
+            'http://backend.test/api/tasks' => Http::response(['data' => $this->apiTask()], 201),
+        ]);
+
+        $this->withSession($this->sessionData())
+            ->postJson(route('tasks.store'), [
+                'title' => 'Preparar el tablero',
+                'description' => 'Tareas de la semana',
+                'category' => 'Diseño',
+                'status' => 'en_progreso',
+                'priority' => 'high',
+                'team' => 'Producto',
+                'start_date' => '2026-11-15',
+                'due_date' => '2026-11-20',
+                'responsible_name' => 'Ana Torres',
+                'subtasks' => [
+                    ['text' => 'Revisar entregables', 'done' => false],
+                ],
+            ])
             ->assertCreated()
-            ->assertExactJson(['id' => 42]);
+            ->assertExactJson(['data' => $this->uiTask()]);
 
         Http::assertSent(fn ($request) => $request->method() === 'POST'
             && $request->url() === 'http://backend.test/api/tasks'
-            && $request->data() === $task
+            && $request->data() === [
+                'name' => 'Preparar el tablero',
+                'description' => 'Tareas de la semana',
+                'start_date' => '2026-11-15',
+                'end_date' => '2026-11-20',
+                'status' => 'en_progreso',
+                'priority' => 'importante',
+                'team' => 'Producto',
+            ]
             && $request->hasHeader('Authorization', 'Bearer test-token'));
+    }
+
+    public function test_task_creation_defaults_missing_start_date_to_the_due_date(): void
+    {
+        Http::fake([
+            'http://backend.test/api/tasks' => Http::response(['data' => $this->apiTask()], 201),
+        ]);
+
+        $this->withSession($this->sessionData())
+            ->postJson(route('tasks.store'), [
+                'title' => 'Preparar el tablero',
+                'status' => 'pendiente',
+                'priority' => 'medium',
+                'due_date' => '2026-11-20',
+            ])
+            ->assertCreated();
+
+        Http::assertSent(fn ($request) => $request->method() === 'POST'
+            && $request->data()['start_date'] === '2026-11-20'
+            && $request->data()['end_date'] === '2026-11-20'
+            && $request->data()['priority'] === 'normal');
+    }
+
+    public function test_task_creation_defaults_missing_dates_to_today(): void
+    {
+        $this->travelTo(Carbon::parse('2026-11-15 09:00:00'));
+
+        Http::fake([
+            'http://backend.test/api/tasks' => Http::response(['data' => $this->apiTask()], 201),
+        ]);
+
+        $this->withSession($this->sessionData())
+            ->postJson(route('tasks.store'), [
+                'title' => 'Preparar el tablero',
+                'status' => 'pendiente',
+                'priority' => 'low',
+            ])
+            ->assertCreated();
+
+        Http::assertSent(fn ($request) => $request->method() === 'POST'
+            && $request->data()['start_date'] === '2026-11-15'
+            && $request->data()['end_date'] === '2026-11-15'
+            && $request->data()['priority'] === 'normal');
     }
 
     public function test_task_detail_is_fetched_with_the_session_token(): void
     {
         Http::fake([
-            'http://backend.test/api/tasks/42' => Http::response([
-                'data' => ['id' => 42, 'title' => 'Preparar el tablero'],
-            ]),
+            'http://backend.test/api/tasks/42' => Http::response(['data' => $this->apiTask()]),
         ]);
 
         $this->withSession($this->sessionData())
             ->getJson(route('tasks.show', ['task' => 42]))
             ->assertOk()
-            ->assertJsonPath('data.id', 42);
+            ->assertExactJson(['data' => $this->uiTask()]);
 
         Http::assertSent(fn ($request) => $request->method() === 'GET'
             && $request->url() === 'http://backend.test/api/tasks/42'
@@ -103,23 +210,22 @@ class TaskControllerTest extends TestCase
     {
         Http::fake([
             'http://backend.test/api/tasks/42' => Http::sequence()
-                ->push(['id' => 42, 'status' => 'completada'])
+                ->push(['data' => $this->apiTask()])
                 ->push([], 204),
         ]);
 
         $this->withSession($this->sessionData())
             ->putJson(route('tasks.update', ['task' => 42]), [
                 'title' => 'Preparar el tablero',
-                'description' => '',
-                'category' => 'Diseño',
-                'status' => 'completada',
-                'priority' => 'medium',
+                'description' => 'Tareas de la semana',
+                'status' => 'en_progreso',
+                'priority' => 'high',
                 'team' => 'Producto',
                 'start_date' => '2026-11-15',
                 'due_date' => '2026-11-20',
             ])
             ->assertOk()
-            ->assertJsonPath('status', 'completada');
+            ->assertJsonPath('data.priority', 'high');
 
         $this->withSession($this->sessionData())
             ->deleteJson(route('tasks.destroy', ['task' => 42]))
@@ -127,6 +233,8 @@ class TaskControllerTest extends TestCase
 
         Http::assertSent(fn ($request) => $request->method() === 'PUT'
             && $request->url() === 'http://backend.test/api/tasks/42'
+            && $request->data()['name'] === 'Preparar el tablero'
+            && $request->data()['end_date'] === '2026-11-20'
             && $request->hasHeader('Authorization', 'Bearer test-token'));
         Http::assertSent(fn ($request) => $request->method() === 'DELETE'
             && $request->url() === 'http://backend.test/api/tasks/42'
