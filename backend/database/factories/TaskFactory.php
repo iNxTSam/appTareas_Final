@@ -25,11 +25,15 @@ class TaskFactory extends Factory
             'user_id' => User::factory(),
             'name' => fake()->sentence(4),
             'description' => fake()->optional()->paragraph(),
+            'category' => fake()->optional()->word(),
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $end->format('Y-m-d'),
             'status' => fake()->randomElement(TaskStatus::cases()),
             'priority' => TaskPriority::Normal,
             'team' => fake()->optional()->word(),
+            'responsible_id' => null,
+            'responsible_name' => fake()->optional()->name(),
+            'subtasks' => [],
         ];
     }
 }

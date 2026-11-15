@@ -9,7 +9,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['name', 'description', 'start_date', 'end_date', 'status', 'priority', 'team'])]
+#[Fillable([
+    'name',
+    'description',
+    'category',
+    'start_date',
+    'end_date',
+    'status',
+    'priority',
+    'team',
+    'responsible_id',
+    'responsible_name',
+    'subtasks',
+])]
 class Task extends Model
 {
     use HasFactory;
@@ -29,6 +41,7 @@ class Task extends Model
             'end_date' => 'date:Y-m-d',
             'status' => TaskStatus::class,
             'priority' => TaskPriority::class,
+            'subtasks' => 'array',
         ];
     }
 

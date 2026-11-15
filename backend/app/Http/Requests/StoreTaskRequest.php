@@ -22,11 +22,19 @@ class StoreTaskRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'category' => ['nullable', 'string', 'max:80'],
             'start_date' => ['required', 'date_format:Y-m-d'],
             'end_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:start_date'],
             'status' => ['required', Rule::in(TaskStatus::values())],
             'priority' => ['sometimes', Rule::in(TaskPriority::values())],
             'team' => ['nullable', 'string', 'max:60'],
+            'responsible_id' => ['nullable', 'string', 'max:120'],
+            'responsible_name' => ['nullable', 'string', 'max:120'],
+            'subtasks' => ['sometimes', 'array'],
+            'subtasks.*.text' => ['required', 'string', 'max:160'],
+            'subtasks.*.done' => ['required', 'boolean'],
+            'subtasks.*.responsible_id' => ['nullable', 'string', 'max:120'],
+            'subtasks.*.responsible_name' => ['nullable', 'string', 'max:120'],
         ];
     }
 
@@ -51,6 +59,18 @@ class StoreTaskRequest extends FormRequest
             'priority.in' => 'La prioridad debe ser Normal o Importante.',
             'team.string' => 'El equipo debe ser texto.',
             'team.max' => 'El equipo no puede superar los 60 caracteres.',
+            'category.string' => 'La categoría debe ser texto.',
+            'category.max' => 'La categoría no puede superar los 80 caracteres.',
+            'responsible_id.string' => 'El identificador del responsable debe ser texto.',
+            'responsible_id.max' => 'El identificador del responsable no puede superar los 120 caracteres.',
+            'responsible_name.string' => 'El responsable debe ser texto.',
+            'responsible_name.max' => 'El responsable no puede superar los 120 caracteres.',
+            'subtasks.array' => 'Las subtareas deben ser una lista.',
+            'subtasks.*.text.required' => 'Cada subtarea necesita un texto.',
+            'subtasks.*.text.string' => 'El texto de la subtarea debe ser texto.',
+            'subtasks.*.text.max' => 'El texto de la subtarea no puede superar los 160 caracteres.',
+            'subtasks.*.done.required' => 'Cada subtarea debe indicar si está completada.',
+            'subtasks.*.done.boolean' => 'El estado de la subtarea debe ser verdadero o falso.',
         ];
     }
 }
