@@ -518,12 +518,18 @@ function setupTaskHeader(root) {
     const newTaskButtons = [...root.querySelectorAll('[data-open-new-task]')];
     const responsibleSelect = taskForm.querySelector('#task-responsible');
     const storageError = root.querySelector('#task-storage-error');
+    const storageErrorMessage = root.querySelector('#task-storage-error-message');
+    const retryButton = root.querySelector('#task-retry');
+    const loadingIndicator = root.querySelector('#task-loading');
+    const toast = root.querySelector('#task-toast');
+    const toastMessage = root.querySelector('#task-toast-message');
     const statusMessage = root.querySelector('#task-status');
     const newTaskDialog = root.querySelector('#new-task-dialog');
     const notificationsDialog = root.querySelector('#notifications-dialog');
     const profileDialog = root.querySelector('#profile-dialog');
     const detailDialog = root.querySelector('#task-detail-modal');
     const detailResponsibleSelect = detailDialog.querySelector('#detail-responsible-select');
+    const detailFeedback = detailDialog.querySelector('#detail-feedback');
     const activeTaskButton = root.querySelector('[data-open-active-task]');
     const viewButtons = [...root.querySelectorAll('[data-view-target]')];
     const views = {
@@ -545,6 +551,7 @@ function setupTaskHeader(root) {
     };
     let tasks = [];
     let isAvailable = false;
+    let hasLoaded = false;
     let editingTaskId = null;
     let isSaving = false;
     let activeView = 'home';
@@ -552,18 +559,72 @@ function setupTaskHeader(root) {
     let homeMode = 'board';
     let displayedCalendarMonth = startOfMonth(selectedDate);
 
+    let toastTimer = null;
+
+    const showToast = (message, type = 'success') => {
+        toastMessage.textContent = message;
+        toastMessage.className = type === 'error'
+            ? 'pointer-events-auto max-w-md rounded-full bg-red-700 px-5 py-3 text-sm font-semibold text-white shadow-xl'
+            : 'pointer-events-auto max-w-md rounded-full bg-negro px-5 py-3 text-sm font-semibold text-white shadow-xl';
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+
+        if (toastTimer !== null) {
+            window.clearTimeout(toastTimer);
+        }
+
+        toastTimer = window.setTimeout(() => {
+            toast.classList.add('opacity-0');
+            toast.classList.remove('opacity-100');
+        }, 3200);
+    };
+
+    let detailFeedbackTimer = null;
+
+    const showDetailFeedback = (message, type = 'success') => {
+        detailFeedback.textContent = message;
+        detailFeedback.className = type === 'error'
+            ? 'mx-1 rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700'
+            : 'mx-1 rounded-lg bg-[#E3F1E9] px-3 py-1.5 text-[11px] font-semibold text-[#2E7D5B]';
+
+        if (detailFeedbackTimer !== null) {
+            window.clearTimeout(detailFeedbackTimer);
+        }
+
+        detailFeedbackTimer = window.setTimeout(() => {
+            detailFeedback.textContent = '';
+            detailFeedback.className = 'hidden mx-1 rounded-lg px-3 py-1.5 text-[11px] font-semibold';
+        }, 2600);
+    };
+
+    const notify = (message, type = 'success') => {
+        if (detailDialog.open) {
+            showDetailFeedback(message, type);
+        } else {
+            showToast(message, type);
+        }
+    };
+
     const setTaskError = (message) => {
         isAvailable = false;
-        storageError.textContent = message;
+        storageErrorMessage.textContent = message;
         storageError.classList.remove('hidden');
+        storageError.classList.add('flex');
         taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
             control.disabled = true;
         });
         setNewTaskButtonsDisabled(true);
     };
 
+    const clearTaskError = () => {
+        storageErrorMessage.textContent = '';
+        storageError.classList.add('hidden');
+        storageError.classList.remove('flex');
+    };
+
     const announce = (message) => {
         statusMessage.textContent = message;
+        notify(message);
     };
 
     const taskUrl = (taskId) => taskUrlTemplate.replace('__task__', encodeURIComponent(taskId));
@@ -577,6 +638,7 @@ function setupTaskHeader(root) {
     const showTaskFormError = (message) => {
         taskFormError.textContent = message;
         taskFormError.classList.remove('hidden');
+        taskFormError.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     };
 
     const clearTaskFormError = () => {
@@ -585,10 +647,14 @@ function setupTaskHeader(root) {
     };
 
     const loadTasks = async () => {
+        if (!hasLoaded) {
+            loadingIndicator.classList.remove('hidden');
+        }
+
         try {
             tasks = normalizeTaskCollection(await requestTaskApi('GET', tasksUrl));
             isAvailable = true;
-            storageError.classList.add('hidden');
+            clearTaskError();
             taskForm.querySelectorAll('input, select, textarea, button').forEach((control) => {
                 control.disabled = false;
             });
@@ -601,8 +667,15 @@ function setupTaskHeader(root) {
             setTaskError(error instanceof Error ? error.message : 'No se pudieron cargar las tareas.');
 
             return false;
+        } finally {
+            hasLoaded = true;
+            loadingIndicator.classList.add('hidden');
         }
     };
+
+    retryButton.addEventListener('click', () => {
+        void loadTasks();
+    });
 
     const saveTasks = async (nextTasks) => {
         const added = nextTasks.filter((nextTask) => !tasks.some((task) => task.id === nextTask.id));
@@ -615,9 +688,7 @@ function setupTaskHeader(root) {
         const changes = added.length + removed.length + updated.length;
 
         if (changes !== 1) {
-            setTaskError('No se pudo identificar una única tarea para guardar.');
-
-            return false;
+            return { ok: false, message: 'No se pudo identificar una única tarea para guardar.' };
         }
 
         try {
@@ -629,11 +700,14 @@ function setupTaskHeader(root) {
                 await requestTaskApi('PUT', taskUrl(updated[0].id), serializeTaskForApi(updated[0]));
             }
 
-            return await loadTasks();
-        } catch (error) {
-            setTaskError(error instanceof Error ? error.message : 'No se pudo guardar la tarea.');
+            const loaded = await loadTasks();
 
-            return false;
+            return { ok: loaded, message: '' };
+        } catch (error) {
+            return {
+                ok: false,
+                message: error instanceof Error ? error.message : 'No se pudo guardar la tarea.',
+            };
         }
     };
 
@@ -673,7 +747,7 @@ function setupTaskHeader(root) {
         root.querySelector('#previous-date-label').textContent = formatCarouselDate(previousDate, false);
         root.querySelector('#next-date-label').textContent = formatCarouselDate(nextDate, false);
         root.querySelector('#selected-date-label').textContent = formatCarouselDate(selectedDate);
-        root.querySelector('#tasks-view-date').textContent = formatCarouselDate(selectedDate);
+        root.querySelector('#tasks-view-date').textContent = 'Todas tus tareas';
         root.querySelector('#agenda-selected-date').textContent = formatCarouselDate(selectedDate);
 
         const metrics = [
@@ -817,7 +891,7 @@ function setupTaskHeader(root) {
                 list.replaceChildren(...columnTasks.map((task) => createBoardTaskCard(task, false)));
             } else {
                 const empty = document.createElement('p');
-                empty.className = 'flex h-full min-h-[140px] items-center justify-center rounded-xl border border-dashed border-gris/15 bg-fondo/70 px-3 py-6 text-center text-xs font-medium text-slate-400';
+                empty.className = 'flex h-full min-h-[140px] items-center justify-center rounded-xl border border-dashed border-gris/15 bg-fondo/70 px-3 py-6 text-center text-xs font-medium text-slate-500';
                 empty.textContent = 'Sin tareas';
                 list.append(empty);
             }
@@ -830,7 +904,7 @@ function setupTaskHeader(root) {
 
         taskList.replaceChildren(...taskColumns);
         taskList.classList.toggle('hidden', tasks.length === 0);
-        root.querySelector('#tasks-view-date').textContent = formatCarouselDate(selectedDate);
+        root.querySelector('#tasks-view-date').textContent = 'Todas tus tareas';
         root.querySelector('#tasks-view-count').textContent = `${tasks.length} ${tasks.length === 1 ? 'tarea' : 'tareas'}`;
         root.querySelector('#tasks-view-empty').classList.toggle('hidden', tasks.length > 0);
 
@@ -1149,8 +1223,20 @@ function setupTaskHeader(root) {
             ? tasks.map((item) => (item.id === baseTask.id ? task : item))
             : [task, ...tasks];
 
-        if (!await saveTasks(nextTasks)) {
+        const result = await saveTasks(nextTasks);
+
+        if (!result.ok) {
+            if (result.message) {
+                showTaskFormError(result.message);
+            }
+
             return false;
+        }
+
+        if (!baseTask && task.start_date) {
+            selectedDate = task.start_date;
+            displayedCalendarMonth = startOfMonth(selectedDate);
+            renderTaskViews();
         }
 
         announce(baseTask ? `Tarea actualizada: ${task.title}` : `Tarea agregada: ${task.title}`);
@@ -1170,9 +1256,13 @@ function setupTaskHeader(root) {
             return;
         }
 
-        if (await saveTasks(tasks.filter((item) => item.id !== task.id))) {
+        const result = await saveTasks(tasks.filter((item) => item.id !== task.id));
+
+        if (result.ok) {
             detailDialog.close();
             announce(`Tarea eliminada: ${task.title}`);
+        } else if (result.message) {
+            notify(result.message, 'error');
         }
     };
 
@@ -1416,10 +1506,14 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === task.id ? updatedTask : item));
 
-        if (await saveTasks(nextTasks)) {
+        const result = await saveTasks(nextTasks);
+
+        if (result.ok) {
             announce(responsibleName
                 ? `Responsable actualizado: ${responsibleName}`
                 : 'Se quitó el responsable de la tarea.');
+        } else if (result.message) {
+            notify(result.message, 'error');
         }
     });
 
@@ -1469,9 +1563,13 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === task.id ? updatedTask : item));
 
-        if (await saveTasks(nextTasks)) {
+        const result = await saveTasks(nextTasks);
+
+        if (result.ok) {
             fillDetailDialog(tasks.find((item) => item.id === task.id) || updatedTask);
-            announce(`Tarea agregada: ${text}`);
+            announce(`Subtarea agregada: ${text}`);
+        } else if (result.message) {
+            notify(result.message, 'error');
         }
     });
 
@@ -1497,10 +1595,14 @@ function setupTaskHeader(root) {
             const updatedTask = { ...task, subtasks };
             const nextTasks = tasks.map((item) => (item.id === taskId ? updatedTask : item));
 
-            if (await saveTasks(nextTasks)) {
+            const result = await saveTasks(nextTasks);
+
+            if (result.ok) {
                 announce(responsibleName
                     ? `Responsable actualizado: ${responsibleName}`
                     : 'Se quitó el responsable de la subtarea.');
+            } else if (result.message) {
+                notify(result.message, 'error');
             }
 
             return;
@@ -1528,9 +1630,13 @@ function setupTaskHeader(root) {
         };
         const nextTasks = tasks.map((item) => (item.id === taskId ? updatedTask : item));
 
-        if (await saveTasks(nextTasks)) {
+        const result = await saveTasks(nextTasks);
+
+        if (result.ok) {
             fillDetailDialog(tasks.find((item) => item.id === task.id) || updatedTask);
             announce(`Avance actualizado: ${updatedTask.title}`);
+        } else if (result.message) {
+            notify(result.message, 'error');
         }
     });
 }

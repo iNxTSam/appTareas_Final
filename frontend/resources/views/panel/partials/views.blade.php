@@ -50,12 +50,12 @@
                             type="button"
                             data-date-shift="-1"
                             aria-label="Mostrar día anterior"
-                            class="group inline-flex min-w-0 items-center justify-self-end gap-1.5 rounded-full border border-transparent px-2.5 py-1.5 text-[10px] font-semibold text-slate-400 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:text-sm"
+                            class="group inline-flex h-9 w-9 min-w-0 items-center justify-center gap-1.5 rounded-full border border-transparent text-[10px] font-semibold text-slate-500 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:h-auto sm:w-auto sm:justify-self-end sm:px-2.5 sm:py-1.5 sm:text-sm"
                         >
                             <svg aria-hidden="true" class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
                             </svg>
-                            <span id="previous-date-label" class="truncate"></span>
+                            <span id="previous-date-label" class="hidden truncate sm:inline"></span>
                         </button>
                         <div class="min-w-0 px-1 text-center">
                             <h1 id="selected-date-label" class="whitespace-nowrap text-2xl font-extrabold leading-tight tracking-tight text-negro sm:text-4xl lg:text-5xl"></h1>
@@ -65,9 +65,9 @@
                             type="button"
                             data-date-shift="1"
                             aria-label="Mostrar día siguiente"
-                            class="group inline-flex min-w-0 items-center justify-self-start gap-1.5 rounded-full border border-transparent px-2.5 py-1.5 text-[10px] font-semibold text-slate-400 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:text-sm"
+                            class="group inline-flex h-9 w-9 min-w-0 items-center justify-center gap-1.5 rounded-full border border-transparent text-[10px] font-semibold text-slate-500 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:h-auto sm:w-auto sm:justify-self-start sm:px-2.5 sm:py-1.5 sm:text-sm"
                         >
-                            <span id="next-date-label" class="truncate"></span>
+                            <span id="next-date-label" class="hidden truncate sm:inline"></span>
                             <svg aria-hidden="true" class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
                             </svg>
@@ -115,8 +115,8 @@
             <section id="view-tasks" role="tabpanel" aria-labelledby="btn-nav-tasks" class="hidden w-full px-4 py-5 sm:px-8">
                 <div class="mb-5 text-center">
                     <h1 class="text-2xl font-extrabold uppercase tracking-tight text-negro">Tareas</h1>
-                    <p id="tasks-view-date" class="mt-2 text-base font-medium text-slate-400"></p>
-                    <p id="tasks-view-count" class="mt-1 text-xs font-medium text-slate-400">0 tareas</p>
+                    <p id="tasks-view-date" class="mt-2 text-base font-medium text-slate-500"></p>
+                    <p id="tasks-view-count" class="mt-1 text-xs font-medium text-slate-500">0 tareas</p>
                 </div>
                 <div id="tasks-view-list" class="grid items-start gap-4 md:grid-cols-3"></div>
                 <p id="tasks-view-empty" class="hidden py-10 text-center text-sm text-slate-500">Aún no tienes tareas. Usa + para agregar una.</p>

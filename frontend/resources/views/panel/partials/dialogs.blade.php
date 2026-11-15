@@ -16,6 +16,8 @@
                 </header>
 
                 <div class="flex-1 space-y-4 overflow-y-auto px-6 py-5 sm:px-8">
+                    <p id="task-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700" role="alert"></p>
+
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label for="task-category" class="field-label">Categoría</label>
@@ -81,13 +83,11 @@
                         <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="field-input"></textarea>
                         <p class="mt-1 text-[11px] leading-5 text-slate-500">Al abrir esta tarea podrás asignar un responsable a cada subtarea.</p>
                     </div>
-
-                    <p id="task-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700" role="alert"></p>
                 </div>
 
                 <footer class="flex flex-col-reverse gap-3 border-t border-gris/10 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
                     <p class="text-xs leading-5 text-slate-500">Las tareas se guardan en tu cuenta.</p>
-                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                         <button type="button" data-close-new-task class="btn-outline">Cancelar</button>
                         <button type="submit" id="task-submit" class="btn-primary min-w-36">Agregar tarea</button>
                     </div>
@@ -169,12 +169,14 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex flex-col justify-center bg-[#91C9AD] px-5 py-3 text-[#173A2D] sm:px-4">
+                        <div class="flex flex-col justify-center bg-[#91C9AD] px-5 py-3 text-[#173A2D] sm:px-4 col-span-2 sm:col-span-1">
                             <span class="block">Avance</span>
                             <span id="detail-percent-value" class="mt-0.5 block text-lg font-extrabold leading-tight"></span>
                         </div>
                     </div>
                 </section>
+
+                <p id="detail-feedback" class="hidden mx-1 rounded-lg px-3 py-1.5 text-[11px] font-semibold" role="status" aria-live="polite"></p>
 
                 <section class="flex min-h-[280px] flex-col rounded-2xl border border-gris/30 bg-[#FFFAFA] px-5 py-5 shadow-lg sm:min-h-[315px] sm:px-6">
                     <div class="mb-2 flex items-center justify-between border-b border-gris/20 pb-2">

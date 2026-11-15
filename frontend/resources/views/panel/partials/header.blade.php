@@ -1,9 +1,9 @@
-        <header class="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 px-4 py-4 sm:px-8">
+        <header class="mx-auto flex w-full max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-4 sm:gap-3 sm:px-8">
             <button
                 type="button"
                 data-open-profile
                 aria-label="Abrir opciones de cuenta y sesión"
-                class="flex min-w-0 items-center gap-2 rounded-2xl border border-primario/15 bg-white px-2.5 py-2 text-left shadow-sm transition hover:border-primario/40 focus:outline-none focus:ring-2 focus:ring-primario/40 sm:gap-3 sm:px-3"
+                class="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-primario/15 bg-white px-2.5 py-2 text-left shadow-sm transition hover:border-primario/40 focus:outline-none focus:ring-2 focus:ring-primario/40 sm:flex-none sm:gap-3 sm:px-3"
             >
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primario-suave text-primario">
                     <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11,19 +11,19 @@
                     </svg>
                 </span>
                 <span class="min-w-0">
-                    <span class="block truncate text-xs font-extrabold uppercase tracking-wide text-negro sm:text-sm">Mi cuenta · {{ $displayName }}</span>
-                    <span class="block truncate text-[9px] font-semibold text-primario sm:text-[10px]">Ver perfil y cerrar sesión</span>
-                    <span id="top-current-date" class="mt-0.5 block text-[9px] font-medium text-slate-400 sm:text-[10px]"></span>
+                    <span class="block truncate text-xs font-extrabold uppercase tracking-wide text-negro sm:text-sm"><span class="hidden sm:inline">Mi cuenta · </span>{{ $displayName }}</span>
+                    <span class="block truncate text-[9px] font-semibold text-primario sm:text-[10px]"><span class="sm:hidden">Ver perfil</span><span class="hidden sm:inline">Ver perfil y cerrar sesión</span></span>
+                    <span id="top-current-date" class="mt-0.5 hidden text-[9px] font-medium text-slate-500 sm:block sm:text-[10px]"></span>
                 </span>
             </button>
 
-            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+            <div class="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
                 <div id="header-timer-pill" class="flex min-w-0 items-center gap-2 rounded-full border border-primario/30 bg-primario-suave py-1.5 pl-3 pr-1.5 shadow-sm sm:gap-4 sm:pl-5">
                     <button
                         id="active-task-button"
                         type="button"
                         data-open-active-task
-                        class="btn-ghost min-h-0 max-w-24 truncate rounded-full px-0 py-0 text-[9px] text-gris sm:max-w-36 sm:text-[10px]"
+                        class="btn-ghost hidden min-h-0 max-w-24 truncate rounded-full px-0 py-0 text-[9px] text-gris sm:inline-flex sm:max-w-36 sm:text-[10px]"
                         aria-label="Ver tarea activa"
                     >
                         SIN TAREA ACTIVA
