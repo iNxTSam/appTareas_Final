@@ -358,4 +358,79 @@ class AuthenticationComplianceTest extends TestCase
 
         $this->get('/panel')->assertRedirect(route('login'));
     }
+
+    public function test_login_con_error_del_servidor_muestra_mensaje_generico(): void
+    {
+        Http::fake([
+            'http://backend.test/api/login' => Http::response([], 500),
+        ]);
+
+        $this->from(route('login'))
+            ->post('/login', $this->loginPayload())
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo iniciar sesión. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
+
+    public function test_logout_cierra_la_sesion_local_si_el_backend_falla(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession([
+            'api_token' => 'test-token',
+            'api_user' => $this->sessionUser(),
+        ])->post('/logout')
+            ->assertRedirect(route('login'))
+            ->assertSessionMissing('api_token')
+            ->assertSessionHas('success', 'Sesión cerrada correctamente.');
+    }
+
+    public function test_panel_muestra_aviso_si_el_backend_no_responde(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession([
+            'api_token' => 'test-token',
+            'api_user' => $this->sessionUser(),
+        ])->get('/panel')
+            ->assertOk()
+            ->assertSee('No se pudo validar la sesión con el servidor.')
+            ->assertSee('Ana Torres');
+    }
+
+    public function test_registro_con_backend_caido_muestra_error_amigable(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->from(route('register'))
+            ->post('/registro', $this->registerPayload())
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo conectar con el servidor. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
+
+    public function test_registro_con_error_del_servidor_muestra_mensaje_generico(): void
+    {
+        Http::fake([
+            'http://backend.test/api/register' => Http::response([], 500),
+        ]);
+
+        $this->from(route('register'))
+            ->post('/registro', $this->registerPayload())
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo crear la cuenta. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
 }

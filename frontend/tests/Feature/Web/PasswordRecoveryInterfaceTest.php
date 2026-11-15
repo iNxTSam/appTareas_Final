@@ -3,6 +3,7 @@
 namespace Tests\Feature\Web;
 
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -113,5 +114,96 @@ class PasswordRecoveryInterfaceTest extends TestCase
         ])->assertSessionHasErrors('password');
 
         Http::assertNothingSent();
+    }
+
+    public function test_solicitar_recuperacion_con_backend_caido_muestra_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->from(route('password.recovery'))
+            ->post(route('password.recovery.store'), ['email' => 'ana@test.local'])
+            ->assertRedirect(route('password.recovery'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo conectar con el servidor. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
+
+    public function test_solicitar_recuperacion_con_error_422_muestra_el_error_del_backend(): void
+    {
+        Http::fake([
+            'http://backend.test/api/forgot-password' => Http::response([
+                'errors' => ['email' => ['El correo no es válido.']],
+            ], 422),
+        ]);
+
+        $this->post(route('password.recovery.store'), ['email' => 'ana@test.local'])
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame('El correo no es válido.', session('errors')->first('email'));
+    }
+
+    public function test_solicitar_recuperacion_con_error_del_servidor_muestra_mensaje_generico(): void
+    {
+        Http::fake([
+            'http://backend.test/api/forgot-password' => Http::response([], 500),
+        ]);
+
+        $this->post(route('password.recovery.store'), ['email' => 'ana@test.local'])
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo enviar el enlace. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
+
+    public function test_pantalla_de_restablecimiento_sin_token_redirige_a_recuperacion(): void
+    {
+        $this->get(route('password.reset'))
+            ->assertRedirect(route('password.recovery'))
+            ->assertSessionHasErrors('email');
+    }
+
+    public function test_restablecer_contrasena_con_backend_caido_muestra_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->from(route('password.reset', ['token' => 'token-prueba', 'email' => 'ana@test.local']))
+            ->post(route('password.reset.update'), [
+                'email' => 'ana@test.local',
+                'token' => 'token-prueba',
+                'password' => 'Nueva1234',
+                'password_confirmation' => 'Nueva1234',
+            ])
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo conectar con el servidor. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
+    }
+
+    public function test_restablecer_contrasena_con_error_del_servidor_muestra_mensaje_generico(): void
+    {
+        Http::fake([
+            'http://backend.test/api/reset-password' => Http::response([], 500),
+        ]);
+
+        $this->from(route('password.reset', ['token' => 'token-prueba', 'email' => 'ana@test.local']))
+            ->post(route('password.reset.update'), [
+                'email' => 'ana@test.local',
+                'token' => 'token-prueba',
+                'password' => 'Nueva1234',
+                'password_confirmation' => 'Nueva1234',
+            ])
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(
+            'No se pudo restablecer la contraseña. Inténtalo de nuevo.',
+            session('errors')->first('email')
+        );
     }
 }
