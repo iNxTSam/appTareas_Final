@@ -148,11 +148,15 @@ class TaskController extends Controller
         return [
             'name' => $data['title'],
             'description' => $data['description'] ?? null,
+            'category' => $data['category'] ?? null,
             'start_date' => Carbon::parse((string) $startDate)->toDateString(),
             'end_date' => Carbon::parse((string) $endDate)->toDateString(),
             'status' => $data['status'],
             'priority' => self::API_PRIORITIES[$data['priority']],
             'team' => $data['team'] ?? null,
+            'responsible_id' => $data['responsible_id'] ?? null,
+            'responsible_name' => $data['responsible_name'] ?? null,
+            'subtasks' => $data['subtasks'] ?? [],
         ];
     }
 
@@ -168,11 +172,15 @@ class TaskController extends Controller
             'id' => $task['id'] ?? null,
             'title' => $task['name'] ?? '',
             'description' => $task['description'] ?? '',
+            'category' => $task['category'] ?? '',
             'status' => $task['status'] ?? 'pendiente',
             'status_label' => $task['status_label'] ?? null,
             'priority' => self::UI_PRIORITIES[$priority] ?? 'medium',
             'priority_label' => $task['priority_label'] ?? null,
             'team' => $task['team'] ?? '',
+            'responsible_id' => $task['responsible_id'] ?? '',
+            'responsible_name' => $task['responsible_name'] ?? '',
+            'subtasks' => $task['subtasks'] ?? [],
             'start_date' => $task['start_date'] ?? null,
             'due_date' => $task['end_date'] ?? null,
             'created_at' => $task['created_at'] ?? null,

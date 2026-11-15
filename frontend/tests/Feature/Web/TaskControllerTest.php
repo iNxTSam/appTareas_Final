@@ -41,6 +41,7 @@ class TaskControllerTest extends TestCase
             'id' => 42,
             'name' => 'Preparar el tablero',
             'description' => 'Tareas de la semana',
+            'category' => 'Diseño',
             'start_date' => '2026-11-15',
             'end_date' => '2026-11-20',
             'status' => 'en_progreso',
@@ -48,6 +49,11 @@ class TaskControllerTest extends TestCase
             'priority' => 'importante',
             'priority_label' => 'Importante',
             'team' => 'Producto',
+            'responsible_id' => 'ana',
+            'responsible_name' => 'Ana Torres',
+            'subtasks' => [
+                ['text' => 'Revisar entregables', 'done' => false],
+            ],
             'created_at' => '2026-11-15T10:00:00+00:00',
             'updated_at' => '2026-11-15T10:00:00+00:00',
         ];
@@ -62,11 +68,17 @@ class TaskControllerTest extends TestCase
             'id' => 42,
             'title' => 'Preparar el tablero',
             'description' => 'Tareas de la semana',
+            'category' => 'Diseño',
             'status' => 'en_progreso',
             'status_label' => 'En progreso',
             'priority' => 'high',
             'priority_label' => 'Importante',
             'team' => 'Producto',
+            'responsible_id' => 'ana',
+            'responsible_name' => 'Ana Torres',
+            'subtasks' => [
+                ['text' => 'Revisar entregables', 'done' => false],
+            ],
             'start_date' => '2026-11-15',
             'due_date' => '2026-11-20',
             'created_at' => '2026-11-15T10:00:00+00:00',
@@ -125,6 +137,7 @@ class TaskControllerTest extends TestCase
                 'team' => 'Producto',
                 'start_date' => '2026-11-15',
                 'due_date' => '2026-11-20',
+                'responsible_id' => 'ana',
                 'responsible_name' => 'Ana Torres',
                 'subtasks' => [
                     ['text' => 'Revisar entregables', 'done' => false],
@@ -138,11 +151,17 @@ class TaskControllerTest extends TestCase
             && $request->data() === [
                 'name' => 'Preparar el tablero',
                 'description' => 'Tareas de la semana',
+                'category' => 'Diseño',
                 'start_date' => '2026-11-15',
                 'end_date' => '2026-11-20',
                 'status' => 'en_progreso',
                 'priority' => 'importante',
                 'team' => 'Producto',
+                'responsible_id' => 'ana',
+                'responsible_name' => 'Ana Torres',
+                'subtasks' => [
+                    ['text' => 'Revisar entregables', 'done' => false],
+                ],
             ]
             && $request->hasHeader('Authorization', 'Bearer test-token'));
     }
