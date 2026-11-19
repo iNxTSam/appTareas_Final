@@ -4,12 +4,20 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::flush();
+    }
 
     private function registerPayload(array $overrides = []): array
     {
@@ -199,5 +207,80 @@ class AuthApiTest extends TestCase
             ->assertUnauthorized();
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+
+    public function test_login_bloquea_tras_cinco_intentos_fallidos(): void
+    {
+        $this->createUser();
+
+        foreach (range(1, 5) as $attempt) {
+            $this->postJson('/api/login', [
+                'email' => 'ana@test.local',
+                'password' => 'Mala1234',
+            ])->assertUnprocessable();
+        }
+
+        $response = $this->postJson('/api/login', [
+            'email' => 'ana@test.local',
+            'password' => 'Abcd1234',
+        ]);
+
+        $response->assertStatus(429)
+            ->assertJsonPath('errors.email.0', fn (string $message) => str_contains($message, 'Demasiados intentos'));
+
+        $this->assertGreaterThan(0, (int) $response->headers->get('Retry-After'));
+    }
+
+    public function test_login_permite_reintentar_tras_el_bloqueo(): void
+    {
+        $this->createUser();
+
+        foreach (range(1, 5) as $attempt) {
+            $this->postJson('/api/login', [
+                'email' => 'ana@test.local',
+                'password' => 'Mala1234',
+            ])->assertUnprocessable();
+        }
+
+        $this->postJson('/api/login', [
+            'email' => 'ana@test.local',
+            'password' => 'Abcd1234',
+        ])->assertStatus(429);
+
+        $this->travel(16)->minutes();
+
+        $this->postJson('/api/login', [
+            'email' => 'ana@test.local',
+            'password' => 'Abcd1234',
+        ])->assertOk();
+    }
+
+    public function test_login_exitoso_reinicia_el_contador_de_intentos(): void
+    {
+        $this->createUser();
+
+        foreach (range(1, 4) as $attempt) {
+            $this->postJson('/api/login', [
+                'email' => 'ana@test.local',
+                'password' => 'Mala1234',
+            ])->assertUnprocessable();
+        }
+
+        $this->postJson('/api/login', [
+            'email' => 'ana@test.local',
+            'password' => 'Abcd1234',
+        ])->assertOk();
+
+        foreach (range(1, 5) as $attempt) {
+            $this->postJson('/api/login', [
+                'email' => 'ana@test.local',
+                'password' => 'Mala1234',
+            ])->assertUnprocessable();
+        }
+
+        $this->postJson('/api/login', [
+            'email' => 'ana@test.local',
+            'password' => 'Abcd1234',
+        ])->assertStatus(429);
     }
 }

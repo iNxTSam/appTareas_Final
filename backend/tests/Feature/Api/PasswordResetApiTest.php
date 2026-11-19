@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Tests\TestCase;
@@ -64,7 +65,7 @@ class PasswordResetApiTest extends TestCase
         $stored = \DB::table('password_reset_tokens')->where('email', 'ana@test.local')->first();
         $this->assertNotNull($stored);
         $this->assertNotSame($tokenFromMail, $stored->token);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check($tokenFromMail, $stored->token));
+        $this->assertTrue(Hash::check($tokenFromMail, $stored->token));
     }
 
     public function test_reset_password_rechaza_token_expirado(): void
