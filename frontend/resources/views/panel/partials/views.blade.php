@@ -25,20 +25,6 @@
                                     <path stroke-linecap="round" stroke-width="1.75" d="M4 7h9M7 12h11M10 17h7M4 4v16"/>
                                 </svg>
                             </button>
-                            <button
-                                type="button"
-                                aria-label="Tercera vista, próximamente"
-                                title="Próximamente"
-                                disabled
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gris/30"
-                            >
-                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <rect x="4" y="4" width="7" height="7" rx="1" stroke-width="1.75"/>
-                                    <rect x="13" y="4" width="7" height="7" rx="1" stroke-width="1.75"/>
-                                    <rect x="4" y="13" width="7" height="7" rx="1" stroke-width="1.75"/>
-                                    <rect x="13" y="13" width="7" height="7" rx="1" stroke-width="1.75"/>
-                                </svg>
-                            </button>
                         </div>
                     </div>
 
