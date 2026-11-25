@@ -43,7 +43,7 @@
                         <svg aria-hidden="true" class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 2a6 6 0 0 0-6 6v3.586l-.707.707A1 1 0 0 0 4 14h12a1 1 0 0 0 .707-1.707L16 11.586V8a6 6 0 0 0-6-6Zm0 16a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3Z"/>
                         </svg>
-                        <span id="notification-count" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-badgeGold px-1 text-[9px] font-extrabold text-white"></span>
+                        <span id="notification-count" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-badgeGold px-1 text-[9px] font-extrabold text-negro"></span>
                     </button>
                 </div>
 

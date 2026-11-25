@@ -126,7 +126,7 @@
                 <div class="mx-auto w-full max-w-3xl">
                     <div class="mb-5 text-center">
                         <h1 class="text-2xl font-extrabold uppercase tracking-tight text-negro">Calendario</h1>
-                        <p id="agenda-selected-date" class="mt-2 text-base font-medium capitalize text-slate-400"></p>
+                        <p id="agenda-selected-date" class="mt-2 text-base font-medium capitalize text-slate-600"></p>
                     </div>
                     <div class="rounded-3xl border border-primario/10 bg-white p-4 shadow-lg shadow-primario/5 sm:p-6">
                         <div class="mb-5 flex items-center justify-between">

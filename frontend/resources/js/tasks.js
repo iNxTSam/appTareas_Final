@@ -323,6 +323,17 @@ function formatCarouselDate(value, includeYear = true) {
         : `${day} - ${formattedMonth}`;
 }
 
+function formatAccessibleDate(value) {
+    const date = dateFromString(value);
+
+    return new Intl.DateTimeFormat('es', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(date);
+}
+
 function taskOccursOnDate(task, date) {
     const firstDate = task.start_date || task.due_date;
     const lastDate = task.due_date || task.start_date;
@@ -358,7 +369,7 @@ function createTaskViewCard(task) {
     titleGroup.className = 'min-w-0';
 
     const category = document.createElement('span');
-    category.className = 'block truncate text-[10px] font-extrabold uppercase tracking-widest text-slate-400';
+    category.className = 'block truncate text-[10px] font-extrabold uppercase tracking-widest text-slate-600';
     category.textContent = task.category;
 
     const title = document.createElement('span');
@@ -380,7 +391,7 @@ function createTaskViewCard(task) {
 
     if (task.is_important) {
         const important = document.createElement('span');
-        important.className = 'rounded-full bg-badgeGold px-2 py-0.5 text-[9px] font-bold uppercase text-white';
+        important.className = 'rounded-full bg-badgeGold px-2 py-0.5 text-[9px] font-bold uppercase text-negro';
         important.textContent = 'Importante';
         footer.append(important);
     }
@@ -426,8 +437,8 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     statusGroup.append(statusBadge, priorityBadge);
 
-    const title = document.createElement('h3');
-    title.className = 'mt-3 text-[19px] font-extrabold uppercase leading-tight tracking-tight text-white';
+    const title = document.createElement('span');
+    title.className = 'mt-3 block text-[19px] font-extrabold uppercase leading-tight tracking-tight text-white';
     title.textContent = task.title;
 
     const team = document.createElement('p');
@@ -461,7 +472,7 @@ function createBoardTaskCard(task, isCarousel = true) {
         cell.className = 'rounded-xl border border-white/15 bg-[#F5F2F1] px-2 py-2 text-center text-[10px] font-bold uppercase text-[#2B2B36]';
 
         const caption = document.createElement('span');
-        caption.className = 'mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500';
+        caption.className = 'mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600';
         caption.textContent = label;
 
         const value = document.createElement('span');
@@ -744,24 +755,28 @@ function setupTaskHeader(root) {
         const nextDate = shiftDate(selectedDate, 1);
         const dateStats = root.querySelector('#selected-date-stats');
 
-        root.querySelector('#previous-date-label').textContent = formatCarouselDate(previousDate, false);
-        root.querySelector('#next-date-label').textContent = formatCarouselDate(nextDate, false);
+        const previousDateLabel = formatCarouselDate(previousDate, false);
+        const nextDateLabel = formatCarouselDate(nextDate, false);
+        root.querySelector('#previous-date-label').textContent = previousDateLabel;
+        root.querySelector('#next-date-label').textContent = nextDateLabel;
+        root.querySelector('[data-date-shift="-1"]').setAttribute('aria-label', `Mostrar día anterior: ${previousDateLabel}`);
+        root.querySelector('[data-date-shift="1"]').setAttribute('aria-label', `Mostrar día siguiente: ${nextDateLabel}`);
         root.querySelector('#selected-date-label').textContent = formatCarouselDate(selectedDate);
         root.querySelector('#tasks-view-date').textContent = 'Todas tus tareas';
         root.querySelector('#agenda-selected-date').textContent = formatCarouselDate(selectedDate);
 
         const metrics = [
             { text: `${dateTasks.length} tareas`, className: 'text-primario' },
-            { text: `${dateTasks.filter((task) => task.status === 'TERMINADOS').length} terminadas`, className: 'text-[#5D9C78]' },
-            { text: `${dateTasks.filter((task) => task.status === 'PROCESO').length} en proceso`, className: 'text-[#B18A43]' },
-            { text: `${dateTasks.filter((task) => task.status === 'INICIADO').length} iniciadas`, className: 'text-[#B47C88]' },
+            { text: `${dateTasks.filter((task) => task.status === 'TERMINADOS').length} terminadas`, className: 'text-[#2F6B4F]' },
+            { text: `${dateTasks.filter((task) => task.status === 'PROCESO').length} en proceso`, className: 'text-[#7A5A1A]' },
+            { text: `${dateTasks.filter((task) => task.status === 'INICIADO').length} iniciadas`, className: 'text-[#8A3D4D]' },
         ];
         const statsElements = [];
 
         metrics.forEach((metric, index) => {
             if (index > 0) {
                 const separator = document.createElement('span');
-                separator.className = 'text-slate-300';
+                separator.className = 'text-slate-500';
                 separator.textContent = '–';
                 statsElements.push(separator);
             }
@@ -822,14 +837,14 @@ function setupTaskHeader(root) {
             const button = document.createElement('button');
             button.type = 'button';
             button.dataset.calendarDate = dateString;
-            button.setAttribute('aria-label', formatCarouselDate(dateString));
+            button.setAttribute('aria-label', formatAccessibleDate(dateString));
             button.setAttribute('aria-pressed', String(isSelected));
             button.className = `relative mx-auto flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-primario/30 sm:h-10 sm:w-10 ${
                 isSelected
                     ? 'bg-primario text-white'
                     : isCurrentMonth
                         ? 'text-negro hover:bg-primario-suave'
-                        : 'text-slate-300 hover:bg-fondo'
+                        : 'text-slate-500 hover:bg-fondo'
             }`;
 
             const dayNumber = document.createElement('span');
@@ -1070,7 +1085,7 @@ function setupTaskHeader(root) {
             const text = document.createElement('span');
             text.textContent = subtask.text;
             text.className = subtask.done
-                ? 'break-words text-xs font-medium text-slate-400 line-through'
+                ? 'break-words text-xs font-medium text-slate-600 line-through'
                 : 'break-words text-xs font-medium text-gris';
 
             const header = document.createElement('div');
@@ -1078,7 +1093,7 @@ function setupTaskHeader(root) {
 
             const state = document.createElement('span');
             state.className = subtask.done
-                ? 'rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#4D8767]'
+                ? 'rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#2F6B4F]'
                 : 'rounded-full bg-primario-suave px-2 py-1 text-[9px] font-bold text-primario';
             state.textContent = subtask.done ? 'Hecha' : 'Pendiente';
             header.append(text, state);
