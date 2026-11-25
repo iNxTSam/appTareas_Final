@@ -291,6 +291,43 @@ class TaskControllerTest extends TestCase
             ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
     }
 
+    public function test_task_detail_connection_failure_returns_a_visible_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession($this->sessionData())
+            ->getJson(route('tasks.show', ['task' => 42]))
+            ->assertServiceUnavailable()
+            ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
+    }
+
+    public function test_task_delete_connection_failure_returns_a_visible_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession($this->sessionData())
+            ->deleteJson(route('tasks.destroy', ['task' => 42]))
+            ->assertServiceUnavailable()
+            ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
+    }
+
+    public function test_panel_remains_usable_when_selector_endpoints_fail(): void
+    {
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), '/api/me')) {
+                return Http::response(['user' => $this->sessionData()['api_user']]);
+            }
+
+            throw new ConnectionException('Selectores no disponibles.');
+        });
+
+        $this->withSession($this->sessionData())
+            ->get(route('panel'))
+            ->assertOk()
+            ->assertSee('Ana Torres')
+            ->assertSee('name="team_id"', false);
+    }
+
     public function test_invalid_task_values_are_rejected_before_calling_the_api(): void
     {
         Http::fake();

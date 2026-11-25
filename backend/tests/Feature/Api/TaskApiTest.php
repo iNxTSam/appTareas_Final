@@ -370,6 +370,50 @@ class TaskApiTest extends TestCase
             ->assertJsonValidationErrors(['project_id']);
     }
 
+    public function test_tasks_store_rejects_project_without_team(): void
+    {
+        $owner = $this->createAccount('owner@test.local');
+        $team = $this->makeTeam($owner);
+        $project = Project::factory()->create(['team_id' => $team->team_id]);
+
+        $this->authenticate($owner);
+
+        $this->postJson('/api/tasks', $this->taskPayload([
+            'team_id' => null,
+            'project_id' => $project->project_id,
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['project_id']);
+    }
+
+    public function test_tasks_store_validates_subtask_assignee_membership(): void
+    {
+        $owner = $this->createAccount('owner@test.local');
+        $member = $this->createAccount('member@test.local');
+        $outsider = $this->createAccount('outsider@test.local');
+        $team = $this->makeTeam($owner, $member);
+
+        $this->authenticate($owner);
+
+        $this->postJson('/api/tasks', $this->taskPayload([
+            'team_id' => $team->team_id,
+            'subtasks' => [
+                ['title' => 'Asignada al equipo', 'assignee_id' => $member->account_id],
+            ],
+        ]))
+            ->assertCreated()
+            ->assertJsonPath('data.subtasks.0.assignee.id', $member->account_id);
+
+        $this->postJson('/api/tasks', $this->taskPayload([
+            'team_id' => $team->team_id,
+            'subtasks' => [
+                ['title' => 'Asignada a un ajeno', 'assignee_id' => $outsider->account_id],
+            ],
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['subtasks.0.assignee_id']);
+    }
+
     public function test_tasks_store_rejects_assignee_outside_the_team(): void
     {
         $owner = $this->createAccount('owner@test.local');

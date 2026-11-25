@@ -195,7 +195,7 @@ class TaskController extends Controller
     /**
      * @param  array<int, int>  $assigneeIds
      */
-    private function assertAssignees(Account $account, ?int $teamId, array $assigneeIds): void
+    private function assertAssignees(Account $account, ?int $teamId, array $assigneeIds, string $errorKey = 'assignee_ids'): void
     {
         if ($assigneeIds === []) {
             return;
@@ -211,7 +211,7 @@ class TaskController extends Controller
 
         if (array_diff($assigneeIds, $allowed) !== []) {
             throw ValidationException::withMessages([
-                'assignee_ids' => ['Los responsables deben pertenecer al equipo.'],
+                $errorKey => ['Los responsables deben pertenecer al equipo.'],
             ]);
         }
     }
@@ -227,7 +227,7 @@ class TaskController extends Controller
             $assigneeId = $subtask['assignee_id'] ?? null;
 
             if ($assigneeId !== null) {
-                $this->assertAssignees($account, $teamId, [$assigneeId]);
+                $this->assertAssignees($account, $teamId, [$assigneeId], "subtasks.{$index}.assignee_id");
             }
 
             Subtask::create([
