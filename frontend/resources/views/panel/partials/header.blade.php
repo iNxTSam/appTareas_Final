@@ -3,12 +3,12 @@
                 <button
                     type="button"
                     data-nav-toggle
-                    aria-label="Volver al menú principal"
+                    aria-label="Volver al inicio"
                     title="Volver al inicio"
                     class="btn-icon-outline hidden h-10 w-10 sm:h-11 sm:w-11"
                 >
                     <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-width="1.75" d="M4 7h16M4 12h16M4 17h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 12H5m7-7-7 7 7 7"/>
                     </svg>
                 </button>
 
