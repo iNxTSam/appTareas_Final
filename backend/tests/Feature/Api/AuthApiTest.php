@@ -179,6 +179,13 @@ class AuthApiTest extends TestCase
         $this->getJson('/api/me')->assertUnauthorized();
     }
 
+    public function test_me_without_json_accept_header_returns_json_unauthorized(): void
+    {
+        $this->get('/api/me')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Unauthenticated.');
+    }
+
     public function test_me_returns_authenticated_user(): void
     {
         $token = $this->postJson('/api/register', $this->registerPayload())
