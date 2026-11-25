@@ -20,12 +20,22 @@
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <label for="task-category" class="field-label">Categoría</label>
-                            <input id="task-category" name="category" type="text" maxlength="80" placeholder="Ej. Diseño UI/UX" class="field-input">
+                            <label for="task-category" class="field-label">Proyecto</label>
+                            <select id="task-category" name="project_id" class="field-input">
+                                <option value="">Sin proyecto</option>
+                                @foreach ($projectOptions as $project)
+                                    <option value="{{ $project['id'] }}" data-team-id="{{ $project['team_id'] }}">{{ $project['name'] }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
                             <label for="task-team" class="field-label">Equipo</label>
-                            <input id="task-team" name="team" type="text" maxlength="60" placeholder="Ej. Diseño" class="field-input">
+                            <select id="task-team" name="team_id" class="field-input">
+                                <option value="">Personal (sin equipo)</option>
+                                @foreach ($teamOptions as $team)
+                                    <option value="{{ $team['id'] }}">{{ $team['name'] }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 

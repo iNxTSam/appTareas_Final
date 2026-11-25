@@ -155,8 +155,13 @@ function normalizeTask(value) {
 
     const subtasks = normalizeSubtasks(value.subtasks);
     const startDate = normalizeDate(value.start_date ?? value.startDate ?? value.start);
-    const dueDate = normalizeDate(value.due_date ?? value.dueDate ?? value.end);
-    const priority = String(value.priority ?? (value.is_important === true || value.important === true ? 'high' : 'medium')).toLowerCase();
+    const dueDate = normalizeDate(value.end_date ?? value.due_date ?? value.dueDate ?? value.end);
+    const rawPriority = String(value.priority ?? (value.is_important === true || value.important === true ? 'high' : 'medium')).toLowerCase();
+    const priority = ({
+        baja: 'low',
+        media: 'medium',
+        alta: 'high',
+    })[rawPriority] ?? rawPriority;
     const responsibleId = value.responsible_id === null || value.responsible_id === undefined || value.responsible_id === ''
         ? ''
         : String(value.responsible_id);
@@ -187,6 +192,8 @@ function normalizeTask(value) {
             : typeof value.team?.name === 'string'
                 ? value.team.name
                 : '',
+        team_id: value.team_id === null || value.team_id === undefined ? '' : String(value.team_id),
+        project_id: value.project_id === null || value.project_id === undefined ? '' : String(value.project_id),
         is_important: priority === 'high' || value.is_important === true || value.important === true,
         subtasks,
         progress_percentage: Math.round(progress),
@@ -221,17 +228,19 @@ function normalizeTaskCollection(payload) {
 
 function serializeTaskForApi(task) {
     return {
-        category: task.category,
         title: task.title,
         description: task.description,
         status: API_TASK_STATUSES[task.status],
         priority: task.priority,
-        team: task.team,
+        team_id: task.team_id || null,
+        project_id: task.project_id || null,
         start_date: task.start_date || null,
         due_date: task.due_date || null,
         responsible_id: task.responsible_id || null,
-        responsible_name: task.responsible_name || null,
-        subtasks: task.subtasks,
+        subtasks: task.subtasks.map((subtask) => ({
+            title: subtask.text,
+            is_done: subtask.done,
+        })),
     };
 }
 
@@ -517,6 +526,8 @@ function setupTaskHeader(root) {
     const taskFormSubtitleDefault = taskFormSubtitle.textContent;
     const newTaskButtons = [...root.querySelectorAll('[data-open-new-task]')];
     const responsibleSelect = taskForm.querySelector('#task-responsible');
+    const projectSelect = taskForm.querySelector('#task-category');
+    const teamSelect = taskForm.querySelector('#task-team');
     const storageError = root.querySelector('#task-storage-error');
     const storageErrorMessage = root.querySelector('#task-storage-error-message');
     const retryButton = root.querySelector('#task-retry');
@@ -675,6 +686,14 @@ function setupTaskHeader(root) {
 
     retryButton.addEventListener('click', () => {
         void loadTasks();
+    });
+
+    projectSelect.addEventListener('change', () => {
+        const teamId = projectSelect.selectedOptions[0]?.dataset.teamId || '';
+
+        if (teamId !== '') {
+            teamSelect.value = teamId;
+        }
     });
 
     const saveTasks = async (nextTasks) => {
@@ -1167,8 +1186,8 @@ function setupTaskHeader(root) {
             taskFormTitle.textContent = 'Editar tarea';
             taskFormSubtitle.textContent = 'Actualiza los datos y guarda los cambios.';
             taskSubmitButton.textContent = 'Guardar cambios';
-            taskForm.querySelector('#task-category').value = task.category === 'GENERAL' ? '' : task.category;
-            taskForm.querySelector('#task-team').value = task.team || '';
+            taskForm.querySelector('#task-category').value = task.project_id || '';
+            taskForm.querySelector('#task-team').value = task.team_id || '';
             responsibleSelect.value = task.responsible_id || '';
             taskForm.querySelector('#task-title').value = task.title;
             taskForm.querySelector('#task-description').value = task.description || '';
@@ -1198,14 +1217,18 @@ function setupTaskHeader(root) {
 
         const baseTask = editingTaskId === null ? null : tasks.find((task) => task.id === editingTaskId);
         const responsibleOption = responsibleSelect.selectedOptions[0];
+        const teamOption = taskForm.querySelector('#task-team').selectedOptions[0];
+        const projectOption = taskForm.querySelector('#task-category').selectedOptions[0];
         const task = normalizeTask({
             id: baseTask?.id ?? createTaskId(),
-            category: String(formData.get('category') || '').trim() || 'GENERAL',
+            category: projectOption?.value ? projectOption.textContent.trim() : 'GENERAL',
+            project_id: String(formData.get('project_id') || '') || null,
             title,
             description: String(formData.get('description') || '').trim(),
             status: String(formData.get('status') || 'pendiente'),
             priority: String(formData.get('priority') || 'medium'),
-            team: String(formData.get('team') || '').trim(),
+            team: teamOption?.value ? teamOption.textContent.trim() : '',
+            team_id: String(formData.get('team_id') || '') || null,
             responsible_id: String(formData.get('responsible_id') || ''),
             responsible_name: responsibleOption?.value ? responsibleOption.textContent.trim() : '',
             subtasks: buildSubtasksFromForm(formData, baseTask),

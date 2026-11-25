@@ -3,13 +3,10 @@
 @php
     $displayName = $apiUser['name'] ?? 'Usuario';
     $email = $apiUser['email'] ?? '';
-    $responsibles = [
-        ['id' => 'nicolas', 'name' => 'Nicolas'],
-        ['id' => 'daniel', 'name' => 'Daniel'],
-        ['id' => 'samuel', 'name' => 'Samuel'],
-        ['id' => 'feipe', 'name' => 'Feipe'],
-        ['id' => 'jse', 'name' => 'Jse'],
-    ];
+    $responsibles = $accounts ?? [];
+    $teamOptions = $teams ?? [];
+    $projectOptions = $projects ?? [];
+    $firstName = trim(explode(' ', $displayName)[0] ?? $displayName);
 @endphp
 
 @section('title', 'AppTareas')

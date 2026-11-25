@@ -265,6 +265,9 @@ class AuthenticationComplianceTest extends TestCase
             'http://backend.test/api/me' => Http::response([
                 'user' => $this->sessionUser(),
             ], 200),
+            'http://backend.test/api/teams' => Http::response(['data' => []]),
+            'http://backend.test/api/projects' => Http::response(['data' => []]),
+            'http://backend.test/api/accounts' => Http::response(['data' => []]),
         ]);
 
         $response = $this->withSession([
@@ -330,6 +333,9 @@ class AuthenticationComplianceTest extends TestCase
             'http://backend.test/api/me' => Http::response([
                 'user' => $this->sessionUser(),
             ], 200),
+            'http://backend.test/api/teams' => Http::response(['data' => []]),
+            'http://backend.test/api/projects' => Http::response(['data' => []]),
+            'http://backend.test/api/accounts' => Http::response(['data' => []]),
         ]);
 
         $this->withSession([
