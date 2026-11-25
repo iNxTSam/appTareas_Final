@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
@@ -29,9 +29,9 @@ class AuthApiTest extends TestCase
         ], $overrides);
     }
 
-    private function createUser(): User
+    private function createAccount(): Account
     {
-        return User::create([
+        return Account::create([
             'name' => 'Ana Torres',
             'email' => 'ana@test.local',
             'password' => 'Abcd1234',
@@ -56,14 +56,14 @@ class AuthApiTest extends TestCase
 
         $this->assertNotEmpty($response->json('token'));
         $this->assertArrayNotHasKey('password', $response->json('user'));
-        $this->assertDatabaseHas('users', ['email' => 'ana@test.local']);
+        $this->assertDatabaseHas('account', ['email' => 'ana@test.local']);
     }
 
     public function test_register_stores_hashed_password(): void
     {
         $this->postJson('/api/register', $this->registerPayload())->assertCreated();
 
-        $user = User::where('email', 'ana@test.local')->firstOrFail();
+        $user = Account::where('email', 'ana@test.local')->firstOrFail();
 
         $this->assertNotSame('Abcd1234', $user->password);
         $this->assertTrue(Hash::check('Abcd1234', $user->password));
@@ -82,7 +82,7 @@ class AuthApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email']);
 
-        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('account', 0);
     }
 
     public function test_register_rejects_duplicate_email_case_insensitive(): void
@@ -93,7 +93,7 @@ class AuthApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['email']);
 
-        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseCount('account', 1);
     }
 
     public function test_register_rejects_weak_password(): void
@@ -107,12 +107,12 @@ class AuthApiTest extends TestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['password']);
 
-        $this->assertDatabaseCount('users', 0);
+        $this->assertDatabaseCount('account', 0);
     }
 
     public function test_login_returns_token_with_valid_credentials(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         $response = $this->postJson('/api/login', [
             'email' => 'ana@test.local',
@@ -131,7 +131,7 @@ class AuthApiTest extends TestCase
 
     public function test_login_is_case_insensitive(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         $this->postJson('/api/login', [
             'email' => 'ANA@TEST.LOCAL',
@@ -141,7 +141,7 @@ class AuthApiTest extends TestCase
 
     public function test_login_rejects_wrong_password_with_generic_message(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         $this->postJson('/api/login', [
             'email' => 'ana@test.local',
@@ -211,7 +211,7 @@ class AuthApiTest extends TestCase
 
     public function test_login_bloquea_tras_cinco_intentos_fallidos(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         foreach (range(1, 5) as $attempt) {
             $this->postJson('/api/login', [
@@ -233,7 +233,7 @@ class AuthApiTest extends TestCase
 
     public function test_login_permite_reintentar_tras_el_bloqueo(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         foreach (range(1, 5) as $attempt) {
             $this->postJson('/api/login', [
@@ -257,7 +257,7 @@ class AuthApiTest extends TestCase
 
     public function test_login_exitoso_reinicia_el_contador_de_intentos(): void
     {
-        $this->createUser();
+        $this->createAccount();
 
         foreach (range(1, 4) as $attempt) {
             $this->postJson('/api/login', [
