@@ -362,11 +362,11 @@ function createTaskViewCard(task) {
     button.dataset.taskViewId = task.id;
     button.className = 'w-full rounded-2xl border border-gris/10 bg-white p-4 text-left shadow-sm transition hover:border-primario/30 focus:outline-none focus:ring-2 focus:ring-primario/30';
 
-    const header = document.createElement('div');
+    const header = document.createElement('span');
     header.className = 'flex items-start justify-between gap-3';
 
-    const titleGroup = document.createElement('div');
-    titleGroup.className = 'min-w-0';
+    const titleGroup = document.createElement('span');
+    titleGroup.className = 'block min-w-0';
 
     const category = document.createElement('span');
     category.className = 'block truncate text-[10px] font-extrabold uppercase tracking-widest text-slate-600';
@@ -417,10 +417,10 @@ function createBoardTaskCard(task, isCarousel = true) {
     card.dataset.taskViewId = task.id;
     card.className = `group relative ${isCarousel ? 'w-[min(82vw,310px)] min-w-[270px] shrink-0' : 'w-full'} rounded-2xl border border-primario-oscuro bg-primario p-4 pb-3 text-left text-white shadow-[0_12px_24px_rgba(78,27,35,0.16)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(78,27,35,0.22)] focus:outline-none focus:ring-2 focus:ring-primario/40`;
 
-    const header = document.createElement('div');
+    const header = document.createElement('span');
     header.className = 'mb-3 flex items-start justify-between gap-3';
 
-    const statusGroup = document.createElement('div');
+    const statusGroup = document.createElement('span');
     statusGroup.className = 'flex flex-wrap items-center gap-1';
 
     const statusBadge = document.createElement('span');
@@ -441,11 +441,11 @@ function createBoardTaskCard(task, isCarousel = true) {
     title.className = 'mt-3 block text-[19px] font-extrabold uppercase leading-tight tracking-tight text-white';
     title.textContent = task.title;
 
-    const team = document.createElement('p');
-    team.className = 'mt-1 truncate text-[9px] font-semibold uppercase tracking-wide text-white/75';
+    const team = document.createElement('span');
+    team.className = 'mt-1 block truncate text-[9px] font-semibold uppercase tracking-wide text-white/75';
     team.textContent = `Equipo: ${task.team || 'Sin equipo'}`;
 
-    const meta = document.createElement('div');
+    const meta = document.createElement('span');
     meta.className = 'mt-3 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-white/80';
 
     const taskCount = document.createElement('span');
@@ -456,20 +456,20 @@ function createBoardTaskCard(task, isCarousel = true) {
     percentage.textContent = `${task.progress_percentage}%`;
     meta.append(taskCount, percentage);
 
-    const progressTrack = document.createElement('div');
-    progressTrack.className = 'mt-2 h-2.5 overflow-hidden rounded-full bg-white/20';
+    const progressTrack = document.createElement('span');
+    progressTrack.className = 'mt-2 block h-2.5 overflow-hidden rounded-full bg-white/20';
 
-    const progressFill = document.createElement('div');
-    progressFill.className = 'h-full rounded-full bg-[#7FE0B2]';
+    const progressFill = document.createElement('span');
+    progressFill.className = 'block h-full rounded-full bg-[#7FE0B2]';
     progressFill.style.width = `${task.progress_percentage}%`;
     progressTrack.append(progressFill);
 
-    const dateGrid = document.createElement('div');
+    const dateGrid = document.createElement('span');
     dateGrid.className = 'mt-4 grid grid-cols-2 gap-2';
 
     const createDateCell = (label, date) => {
-        const cell = document.createElement('div');
-        cell.className = 'rounded-xl border border-white/15 bg-[#F5F2F1] px-2 py-2 text-center text-[10px] font-bold uppercase text-[#2B2B36]';
+        const cell = document.createElement('span');
+        cell.className = 'block rounded-xl border border-white/15 bg-[#F5F2F1] px-2 py-2 text-center text-[10px] font-bold uppercase text-[#2B2B36]';
 
         const caption = document.createElement('span');
         caption.className = 'mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-600';
@@ -488,7 +488,7 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     dateGrid.append(startDate, endDate);
 
-    const footer = document.createElement('div');
+    const footer = document.createElement('span');
     footer.className = 'mt-4 flex items-center justify-between';
 
     const assignment = document.createElement('span');
