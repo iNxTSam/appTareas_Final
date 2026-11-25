@@ -48,6 +48,7 @@
                                     <option value="{{ $responsible['id'] }}">{{ $responsible['name'] }}</option>
                                 @endforeach
                             </select>
+                            <p class="mt-1 text-[10px] text-gris">Solo se permiten responsables que pertenezcan al equipo seleccionado.</p>
                         </div>
                         <div>
                             <label for="task-priority" class="field-label">Prioridad</label>

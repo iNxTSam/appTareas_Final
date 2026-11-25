@@ -104,6 +104,7 @@
                                 <div class="relative mt-2">
                                     <div id="gantt-weekends" class="pointer-events-none absolute inset-0 grid" aria-hidden="true"></div>
                                     <div id="gantt-rows" class="relative space-y-2 py-2" role="list" aria-label="Diagrama Gantt de metas"></div>
+                                    <div id="gantt-drop-line" class="pointer-events-none absolute bottom-0 top-0 z-30 hidden w-0.5 bg-primario/70" aria-hidden="true"></div>
                                     <div id="gantt-today-line" class="pointer-events-none absolute bottom-0 top-0 z-20 hidden w-px bg-primario" aria-hidden="true">
                                         <span class="absolute -left-[5px] -top-1 h-2.5 w-2.5 rounded-full bg-primario"></span>
                                     </div>

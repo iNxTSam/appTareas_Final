@@ -735,6 +735,14 @@ function setupTaskHeader(root) {
         }
     });
 
+    teamSelect.addEventListener('change', () => {
+        const projectOption = projectSelect.selectedOptions[0];
+
+        if (projectOption?.value && projectOption.dataset.teamId !== teamSelect.value) {
+            projectSelect.value = '';
+        }
+    });
+
     const saveTasks = async (nextTasks) => {
         const added = nextTasks.filter((nextTask) => !tasks.some((task) => task.id === nextTask.id));
         const removed = tasks.filter((task) => !nextTasks.some((nextTask) => nextTask.id === task.id));
@@ -1303,8 +1311,8 @@ function setupTaskHeader(root) {
         const reminder = root.querySelector('#header-reminder');
         if (reminder) {
             const daysUntilDue = Math.ceil((deadline - Date.now()) / (24 * 60 * 60 * 1000));
-            reminder.textContent = daysUntilDue <= 0
-                ? `La meta “${task.title}” vence hoy`
+            reminder.textContent = Date.now() > deadline
+                ? `La meta “${task.title}” venció el ${formatDueDate(task.due_date)}`
                 : `La meta “${task.title}” vence en ${daysUntilDue} ${daysUntilDue === 1 ? 'día' : 'días'}`;
         }
 
@@ -1830,6 +1838,7 @@ function setupTaskHeader(root) {
         }
 
         draggedGanttTaskId = null;
+        root.querySelector('#gantt-drop-line')?.classList.add('hidden');
     });
 
     ganttRows.addEventListener('dragover', (event) => {
@@ -1841,6 +1850,15 @@ function setupTaskHeader(root) {
 
         if (event.dataTransfer !== null) {
             event.dataTransfer.dropEffect = 'move';
+        }
+
+        const bounds = ganttRows.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+        const dropLine = root.querySelector('#gantt-drop-line');
+
+        if (dropLine) {
+            dropLine.style.left = `${ratio * 100}%`;
+            dropLine.classList.remove('hidden');
         }
     });
 
@@ -1855,6 +1873,7 @@ function setupTaskHeader(root) {
         const ratio = Math.min(0.999, Math.max(0, (event.clientX - bounds.left) / bounds.width));
         const dropDate = shiftDate(ganttState.rangeStart, Math.floor(ratio * GANTT_DAYS));
         draggedGanttTaskId = null;
+        root.querySelector('#gantt-drop-line')?.classList.add('hidden');
 
         if (!task) {
             return;
