@@ -523,7 +523,7 @@ function setupTaskHeader(root) {
     const loadingIndicator = root.querySelector('#task-loading');
     const toast = root.querySelector('#task-toast');
     const toastMessage = root.querySelector('#task-toast-message');
-    const statusMessage = root.querySelector('#task-status');
+    const statusMessage = root.querySelector('#task-status-announcer');
     const newTaskDialog = root.querySelector('#new-task-dialog');
     const notificationsDialog = root.querySelector('#notifications-dialog');
     const profileDialog = root.querySelector('#profile-dialog');

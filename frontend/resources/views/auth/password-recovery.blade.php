@@ -15,7 +15,7 @@
     @endif
 
     <form method="POST" action="{{ route('password.recovery.store') }}" class="space-y-5" data-validation="recovery">
-        @csrf
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
         <div>
             <label for="email" class="mb-1 block font-medium text-negro">Correo</label>

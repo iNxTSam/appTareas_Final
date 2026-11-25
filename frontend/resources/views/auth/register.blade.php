@@ -11,7 +11,7 @@
     @endif
 
     <form method="POST" action="{{ route('register.store') }}" class="space-y-5" data-validation="register">
-        @csrf
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
         <div>
             <label for="name" class="mb-1 block font-medium text-negro">Nombre</label>

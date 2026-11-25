@@ -11,7 +11,7 @@
     @endif
 
     <form method="POST" action="{{ route('login.store') }}" class="space-y-5" data-validation="login">
-        @csrf
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
 
         <div>
             <label for="email" class="mb-1 block font-medium text-negro">Correo</label>

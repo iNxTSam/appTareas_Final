@@ -15,7 +15,7 @@
     @endif
 
     <form method="POST" action="{{ route('password.reset.update') }}" class="space-y-5" data-validation="reset">
-        @csrf
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
         <input type="hidden" name="token" value="{{ old('token', $token) }}">
         <input type="hidden" name="email" value="{{ old('email', $email) }}">
 

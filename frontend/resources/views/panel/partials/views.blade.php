@@ -58,7 +58,7 @@
                             <span id="previous-date-label" class="hidden truncate sm:inline"></span>
                         </button>
                         <div class="min-w-0 px-1 text-center">
-                            <h1 id="selected-date-label" class="whitespace-nowrap text-2xl font-extrabold leading-tight tracking-tight text-negro sm:text-4xl lg:text-5xl"></h1>
+                            <h1 id="selected-date-label" class="whitespace-nowrap text-2xl font-extrabold leading-tight tracking-tight text-negro sm:text-4xl lg:text-5xl"><span class="sr-only">Fecha seleccionada</span></h1>
                             <p id="selected-date-stats" class="mt-1 flex flex-wrap items-center justify-center gap-x-1.5 text-[10px] font-medium sm:text-sm"></p>
                         </div>
                         <button
@@ -75,7 +75,7 @@
                     </div>
 
                     <div id="home-board-view" class="order-4 mx-auto mt-8 w-full max-w-[1440px]">
-                        <div id="home-board-columns" class="carousel-mask draggable-carousel flex gap-4 overflow-x-auto overscroll-x-contain pb-3" tabindex="0" aria-label="Carrusel horizontal de tareas"></div>
+                        <div id="home-board-columns" class="carousel-mask draggable-carousel flex gap-4 overflow-x-auto overscroll-x-contain pb-3" tabindex="0" role="region" aria-label="Carrusel horizontal de tareas"></div>
                         <div id="home-board-empty" class="hidden py-14">
                             <div class="mx-auto flex max-w-sm flex-col items-center gap-3 text-center">
                                 <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primario-suave text-primario">
@@ -140,7 +140,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
                                 </svg>
                             </button>
-                            <h2 id="home-calendar-month" class="text-base font-extrabold capitalize text-negro sm:text-lg"></h2>
+                            <h2 id="home-calendar-month" class="text-base font-extrabold capitalize text-negro sm:text-lg"><span class="sr-only">Mes del calendario</span></h2>
                             <button
                                 type="button"
                                 data-calendar-shift="1"
