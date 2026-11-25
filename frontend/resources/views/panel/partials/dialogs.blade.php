@@ -116,7 +116,7 @@
                 @endif
                 <p class="mt-4 text-sm leading-6 text-slate-500">Para iniciar sesión con otra cuenta, primero cierra esta sesión.</p>
                 <form method="POST" action="{{ route('logout') }}" class="mt-6">
-                    @csrf
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn-primary w-full">
                         Cerrar sesión y cambiar de cuenta
                     </button>
@@ -141,7 +141,7 @@
                             <p id="detail-project-category" class="text-xs font-extrabold uppercase text-primario"></p>
                             <span id="detail-subtasks-counter" class="text-[10px] font-medium text-gris"></span>
                         </div>
-                        <h2 id="detail-task-title" class="mt-2 break-words text-xl font-extrabold uppercase leading-tight text-negro sm:text-2xl"></h2>
+                        <h2 id="detail-task-title" class="mt-2 break-words text-xl font-extrabold uppercase leading-tight text-negro sm:text-2xl"><span class="sr-only">Detalle de la tarea</span></h2>
                         <p id="detail-task-description" class="mt-2 whitespace-pre-wrap text-sm leading-6 text-gris"></p>
                     </div>
                     <div class="grid grid-cols-2 border-t border-gris/15 text-[10px] sm:grid-cols-[1fr_1fr_1fr_1fr_0.9fr]">

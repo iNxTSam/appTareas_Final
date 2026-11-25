@@ -43,7 +43,7 @@
             </button>
         </div>
 
-        <p id="task-status" class="sr-only" role="status" aria-live="polite"></p>
+        <p id="task-status-announcer" class="sr-only" role="status" aria-live="polite"></p>
 
         <div id="task-toast" class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 opacity-0 transition-opacity duration-200" role="status" aria-live="polite">
             <p id="task-toast-message" class="pointer-events-auto max-w-md rounded-full bg-negro px-5 py-3 text-sm font-semibold text-white shadow-xl"></p>

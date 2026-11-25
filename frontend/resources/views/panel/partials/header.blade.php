@@ -28,7 +28,7 @@
                     >
                         SIN TAREA ACTIVA
                     </button>
-                    <div class="flex shrink-0 items-center gap-0.5 font-sans text-[10px] font-extrabold text-negro sm:gap-1 sm:text-xs" aria-label="Tiempo restante" aria-live="off">
+                    <div class="flex shrink-0 items-center gap-0.5 font-sans text-[10px] font-extrabold text-negro sm:gap-1 sm:text-xs" role="timer" aria-label="Tiempo restante" aria-live="off">
                         <span id="timer-days">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">D</span>:
                         <span id="timer-hours">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">H</span>:
                         <span id="timer-minutes">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">M</span>:
