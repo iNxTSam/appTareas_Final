@@ -507,6 +507,7 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     const action = document.createElement('span');
     action.className = 'flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7F5] text-xl font-bold text-[#7D2F3E] shadow-sm';
+    action.setAttribute('aria-hidden', 'true');
     action.textContent = '→';
 
     footer.append(assignment, action);

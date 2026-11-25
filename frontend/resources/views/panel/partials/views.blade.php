@@ -152,7 +152,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="mb-2 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-slate-400" aria-hidden="true">
+                        <div class="mb-2 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-slate-600" aria-hidden="true">
                             <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
                         </div>
                         <div id="home-calendar-days" class="grid grid-cols-7 gap-y-1"></div>
