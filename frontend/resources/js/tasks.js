@@ -876,6 +876,8 @@ function setupTaskHeader(root) {
         window.history.replaceState({ view: 'home' }, '', viewHashes.home);
     }
 
+    updateNavigation();
+
     const GANTT_DAYS = 31;
     const ganttState = {
         rangeStart: shiftDate(selectedDate, -14),
