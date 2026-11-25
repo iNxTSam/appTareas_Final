@@ -1,7 +1,7 @@
 const TASK_STATUSES = {
-    INICIADO: 'Pendiente',
-    PROCESO: 'En progreso',
-    TERMINADOS: 'Completada',
+    INICIADO: 'Iniciado',
+    PROCESO: 'Proceso',
+    TERMINADOS: 'Terminado',
 };
 
 const API_TASK_STATUSES = {
@@ -201,6 +201,14 @@ function normalizeTask(value) {
         due_date: dueDate,
         responsible_id: responsibleId,
         responsible_name: typeof value.responsible_name === 'string' ? value.responsible_name : '',
+        assignees: Array.isArray(value.assignees)
+            ? value.assignees
+                .filter((assignee) => assignee && typeof assignee.name === 'string')
+                .map((assignee) => ({
+                    id: String(assignee.id ?? ''),
+                    name: assignee.name,
+                }))
+            : [],
     };
 }
 
@@ -358,107 +366,110 @@ function createTaskViewCard(task) {
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.taskViewId = task.id;
-    button.className = 'w-full rounded-2xl border border-gris/10 bg-white p-4 text-left shadow-sm transition hover:border-primario/30 focus:outline-none focus:ring-2 focus:ring-primario/30';
+    button.className = 'flex w-full items-start gap-3 rounded-xl border border-borde bg-white p-3 text-left shadow-sm transition hover:border-primario/50 focus:outline-none focus:ring-2 focus:ring-primario/30';
 
-    const header = document.createElement('div');
-    header.className = 'flex items-start justify-between gap-3';
+    const dot = document.createElement('span');
+    dot.className = `mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+        task.status === 'TERMINADOS' ? 'bg-exito' : task.status === 'PROCESO' ? 'bg-proceso' : 'bg-aviso'
+    }`;
 
-    const titleGroup = document.createElement('div');
-    titleGroup.className = 'min-w-0';
-
-    const category = document.createElement('span');
-    category.className = 'block truncate text-[10px] font-extrabold uppercase tracking-widest text-slate-400';
-    category.textContent = task.category;
+    const body = document.createElement('span');
+    body.className = 'min-w-0 flex-1';
 
     const title = document.createElement('span');
-    title.className = 'mt-1 block break-words font-bold text-negro';
+    title.className = 'block truncate text-[13px] font-extrabold uppercase tracking-tight text-negro';
     title.textContent = task.title;
-    titleGroup.append(category, title);
 
-    const status = document.createElement('span');
-    status.className = 'shrink-0 rounded-full bg-primario-suave px-2.5 py-1 text-[10px] font-bold uppercase text-primario';
-    status.textContent = TASK_STATUSES[task.status];
-    header.append(titleGroup, status);
+    const meta = document.createElement('span');
+    meta.className = 'mt-0.5 block truncate text-[10px] font-medium text-gris';
+    meta.textContent = `${task.team || 'Personal'} · ${formatDueDate(task.due_date)}`;
 
-    const footer = document.createElement('span');
-    footer.className = 'mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gris';
-
-    const dueDate = document.createElement('span');
-    dueDate.textContent = `Fecha límite: ${formatDueDate(task.due_date)}`;
-    footer.append(dueDate);
-
-    if (task.is_important) {
-        const important = document.createElement('span');
-        important.className = 'rounded-full bg-badgeGold px-2 py-0.5 text-[9px] font-bold uppercase text-white';
-        important.textContent = 'Importante';
-        footer.append(important);
-    }
+    body.append(title, meta);
 
     const progress = document.createElement('span');
-    progress.className = 'ml-auto font-bold text-primario';
+    progress.className = 'shrink-0 text-[11px] font-extrabold text-primario numeric';
     progress.textContent = `${task.progress_percentage}%`;
-    footer.append(progress);
 
-    const responsible = document.createElement('span');
-    responsible.className = 'w-full truncate text-[10px] font-semibold text-gris';
-    responsible.textContent = `Responsable: ${task.responsible_name || 'Sin asignar'}`;
-    footer.append(responsible);
-
-    button.append(header, footer);
+    button.append(dot, body, progress);
 
     return button;
 }
 
 function createBoardTaskCard(task, isCarousel = true) {
-    const card = document.createElement('button');
-    card.type = 'button';
+    const card = document.createElement('article');
     card.dataset.taskViewId = task.id;
-    card.className = `group relative ${isCarousel ? 'w-[min(82vw,310px)] min-w-[270px] shrink-0' : 'w-full'} rounded-2xl border border-primario-oscuro bg-primario p-4 pb-3 text-left text-white shadow-[0_12px_24px_rgba(78,27,35,0.16)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_30px_rgba(78,27,35,0.22)] focus:outline-none focus:ring-2 focus:ring-primario/40`;
+    card.className = `group relative flex ${isCarousel ? 'w-[min(84vw,380px)] min-w-[280px] shrink-0 cursor-pointer' : 'w-full cursor-grab active:cursor-grabbing'} flex-col rounded-[20px] bg-primario p-5 text-left text-white shadow-[0_14px_30px_rgba(78,27,35,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(78,27,35,0.28)] focus-within:ring-2 focus-within:ring-primario/50 focus-within:ring-offset-2 focus-within:ring-offset-fondo`;
+
+    if (!isCarousel) {
+        card.draggable = true;
+        card.title = 'Arrastra la tarjeta a otra columna, o usa las flechas izquierda y derecha para cambiar de estado.';
+    }
 
     const header = document.createElement('div');
-    header.className = 'mb-3 flex items-start justify-between gap-3';
+    header.className = 'flex flex-wrap items-center gap-1.5';
 
-    const statusGroup = document.createElement('div');
-    statusGroup.className = 'flex flex-wrap items-center gap-1';
+    const statusStyles = {
+        INICIADO: 'bg-white text-[#0F6B5F]',
+        PROCESO: 'bg-white text-[#5A3E08]',
+        TERMINADOS: 'bg-white text-[#1F7A4A]',
+    };
+    const statusDots = {
+        INICIADO: 'bg-proceso',
+        PROCESO: 'bg-aviso',
+        TERMINADOS: 'bg-exito',
+    };
 
     const statusBadge = document.createElement('span');
-    statusBadge.className = 'inline-flex items-center rounded-full border border-white/20 bg-[#EAF8F1] px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.15em] text-[#1A7A54]';
-    statusBadge.textContent = TASK_STATUSES[task.status];
+    statusBadge.className = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[8px] font-extrabold uppercase tracking-[0.12em] ${statusStyles[task.status]}`;
+    const statusDot = document.createElement('span');
+    statusDot.className = `h-1.5 w-1.5 rounded-full ${statusDots[task.status]}`;
+    const badgeLabels = {
+        INICIADO: 'Iniciado',
+        PROCESO: 'Proceso',
+        TERMINADOS: 'Terminado',
+    };
+    statusBadge.append(statusDot, document.createTextNode(badgeLabels[task.status]));
 
-    const priorityBadge = document.createElement('span');
-    priorityBadge.className = 'inline-flex items-center rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-[0.15em] text-white';
-    priorityBadge.textContent = task.priority === 'high'
-        ? 'Alta'
-        : task.priority === 'low'
-            ? 'Baja'
-            : 'Media';
+    header.append(statusBadge);
 
-    statusGroup.append(statusBadge, priorityBadge);
+    if (task.is_important) {
+        const priorityBadge = document.createElement('span');
+        priorityBadge.className = 'inline-flex items-center rounded-full bg-aviso px-2.5 py-1 text-[8px] font-extrabold uppercase tracking-[0.12em] text-[#4A3507]';
+        priorityBadge.textContent = 'Importante';
+        header.append(priorityBadge);
+    }
 
-    const title = document.createElement('h3');
-    title.className = 'mt-3 text-[19px] font-extrabold uppercase leading-tight tracking-tight text-white';
+    const title = document.createElement('h2');
+    title.className = 'mt-4 text-[21px] font-extrabold uppercase leading-[1.08] tracking-tight text-white';
     title.textContent = task.title;
 
-    const team = document.createElement('p');
-    team.className = 'mt-1 truncate text-[9px] font-semibold uppercase tracking-wide text-white/75';
-    team.textContent = `Equipo: ${task.team || 'Sin equipo'}`;
+    const context = document.createElement('p');
+    context.className = 'mt-1.5 truncate text-[9px] font-bold uppercase tracking-[0.12em] text-white/70';
+    context.textContent = task.team || 'Personal';
 
     const meta = document.createElement('div');
-    meta.className = 'mt-3 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.14em] text-white/80';
+    meta.className = 'mt-4 flex items-center justify-between gap-2 text-[10px] font-extrabold uppercase tracking-[0.08em] text-white';
 
     const taskCount = document.createElement('span');
+    taskCount.className = 'inline-flex items-center gap-1.5';
     const completedSubtasks = task.subtasks.filter((subtask) => subtask.done).length;
-    taskCount.textContent = `Tareas ${completedSubtasks}/${task.subtasks.length}`;
+    const taskCountLabel = document.createElement('span');
+    taskCountLabel.textContent = 'Tareas';
+    const taskCountPill = document.createElement('span');
+    taskCountPill.className = 'rounded-full bg-white/15 px-2 py-0.5 text-[10px] numeric';
+    taskCountPill.textContent = `${completedSubtasks}/${task.subtasks.length}`;
+    taskCount.append(taskCountLabel, taskCountPill);
 
     const percentage = document.createElement('span');
+    percentage.className = 'numeric';
     percentage.textContent = `${task.progress_percentage}%`;
     meta.append(taskCount, percentage);
 
     const progressTrack = document.createElement('div');
-    progressTrack.className = 'mt-2 h-2.5 overflow-hidden rounded-full bg-white/20';
+    progressTrack.className = 'mt-2 h-2 overflow-hidden rounded-full bg-white/25';
 
     const progressFill = document.createElement('div');
-    progressFill.className = 'h-full rounded-full bg-[#7FE0B2]';
+    progressFill.className = 'h-full rounded-full bg-[#4CC38A]';
     progressFill.style.width = `${task.progress_percentage}%`;
     progressTrack.append(progressFill);
 
@@ -467,15 +478,18 @@ function createBoardTaskCard(task, isCarousel = true) {
 
     const createDateCell = (label, date) => {
         const cell = document.createElement('div');
-        cell.className = 'rounded-xl border border-white/15 bg-[#F5F2F1] px-2 py-2 text-center text-[10px] font-bold uppercase text-[#2B2B36]';
+        cell.className = 'rounded-lg bg-[#FFFAFA] px-3 py-2 text-left';
 
         const caption = document.createElement('span');
-        caption.className = 'mb-1 block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500';
+        caption.className = 'block text-[8px] font-semibold text-gris';
         caption.textContent = label;
 
         const value = document.createElement('span');
-        value.className = 'block whitespace-nowrap';
-        value.textContent = formatDueDate(date).split(' ').slice(0, 2).join(' ');
+        value.className = 'mt-0.5 block whitespace-nowrap text-[12px] font-extrabold uppercase text-negro numeric';
+        const dateParts = date ? date.split('-') : [];
+        value.textContent = dateParts.length === 3
+            ? `${dateParts[2]} - ${dateParts[1]} - ${dateParts[0]}`
+            : 'Por definir';
         cell.append(caption, value);
 
         return cell;
@@ -487,29 +501,47 @@ function createBoardTaskCard(task, isCarousel = true) {
     dateGrid.append(startDate, endDate);
 
     const footer = document.createElement('div');
-    footer.className = 'mt-4 flex items-center justify-between';
+    footer.className = 'mt-4 flex items-center justify-between gap-2';
 
     const assignment = document.createElement('span');
-    assignment.className = 'flex min-w-0 items-center gap-2';
+    assignment.className = 'flex min-w-0 items-center';
 
-    const avatar = document.createElement('span');
-    avatar.className = 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/40 bg-white/90 text-[9px] font-extrabold text-primario';
-    avatar.textContent = task.responsible_name
-        ? task.responsible_name.split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('')
-        : '—';
+    const people = task.assignees.length > 0
+        ? task.assignees
+        : task.responsible_name
+            ? [{ id: task.responsible_id, name: task.responsible_name }]
+            : [];
+    const avatarStyles = [
+        { background: 'bg-[#2B4BB5]', text: 'text-white' },
+        { background: 'bg-[#C99AA4]', text: 'text-[#3A1F26]' },
+        { background: 'bg-[#1FA08E]', text: 'text-[#06342F]' },
+        { background: 'bg-[#E7C063]', text: 'text-[#3F2E06]' },
+    ];
 
-    const responsibleName = document.createElement('span');
-    responsibleName.className = 'max-w-[150px] truncate text-[9px] font-bold uppercase tracking-[0.08em] text-white/85';
-    responsibleName.textContent = task.responsible_name || 'Sin asignar';
-    assignment.append(avatar, responsibleName);
+    people.slice(0, 3).forEach((person, index) => {
+        const style = avatarStyles[index % avatarStyles.length];
+        const avatar = document.createElement('span');
+        avatar.className = `-ml-1.5 flex h-8 w-8 shrink-0 first:ml-0 items-center justify-center rounded-full border-2 border-primario text-[9px] font-extrabold ${style.background} ${style.text}`;
+        avatar.title = person.name;
+        avatar.textContent = person.name.split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('');
+        assignment.append(avatar);
+    });
 
-    const action = document.createElement('span');
-    action.className = 'flex h-9 w-9 items-center justify-center rounded-full bg-[#F6F7F5] text-xl font-bold text-[#7D2F3E] shadow-sm';
+    if (people.length > 3) {
+        const more = document.createElement('span');
+        more.className = '-ml-1.5 flex h-8 w-8 items-center justify-center rounded-full border-2 border-primario bg-white text-[9px] font-extrabold text-primario';
+        more.textContent = `+${people.length - 3}`;
+        assignment.append(more);
+    }
+
+    const action = document.createElement('button');
+    action.type = 'button';
+    action.setAttribute('aria-label', `Ver detalle de ${task.title}`);
+    action.className = 'flex h-9 w-9 items-center justify-center rounded-full bg-[#FFFAFA] text-lg font-bold text-primario shadow-sm transition hover:bg-primario-suave focus:outline-none focus:ring-2 focus:ring-white/80';
     action.textContent = '→';
 
     footer.append(assignment, action);
-    header.append(statusGroup);
-    card.append(header, title, team, meta, progressTrack, dateGrid, footer);
+    card.append(header, title, context, meta, progressTrack, dateGrid, footer);
 
     return card;
 }
@@ -540,6 +572,7 @@ function setupTaskHeader(root) {
     const profileDialog = root.querySelector('#profile-dialog');
     const detailDialog = root.querySelector('#task-detail-modal');
     const detailResponsibleSelect = detailDialog.querySelector('#detail-responsible-select');
+    const detailStatusSelect = detailDialog.querySelector('#detail-status-select');
     const detailFeedback = detailDialog.querySelector('#detail-feedback');
     const activeTaskButton = root.querySelector('[data-open-active-task]');
     const viewButtons = [...root.querySelectorAll('[data-view-target]')];
@@ -551,8 +584,7 @@ function setupTaskHeader(root) {
     const homeModeButtons = [...root.querySelectorAll('[data-home-mode]')];
     const homeModeViews = {
         board: root.querySelector('#home-board-view'),
-        list: root.querySelector('#home-list-view'),
-        grid: root.querySelector('#home-grid-view'),
+        gantt: root.querySelector('#home-gantt-view'),
     };
     const timerElements = {
         days: root.querySelector('#timer-days'),
@@ -565,7 +597,14 @@ function setupTaskHeader(root) {
     let hasLoaded = false;
     let editingTaskId = null;
     let isSaving = false;
-    let activeView = 'home';
+    const viewHashes = {
+        home: '#/home',
+        tasks: '#/tareas',
+        agenda: '#/calendario',
+    };
+    const viewFromHash = () => Object.entries(viewHashes)
+        .find(([, hash]) => hash === window.location.hash)?.[0] ?? 'home';
+    let activeView = viewFromHash();
     let selectedDate = toDateString(new Date());
     let homeMode = 'board';
     let displayedCalendarMonth = startOfMonth(selectedDate);
@@ -596,7 +635,7 @@ function setupTaskHeader(root) {
         detailFeedback.textContent = message;
         detailFeedback.className = type === 'error'
             ? 'mx-1 rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-700'
-            : 'mx-1 rounded-lg bg-[#E3F1E9] px-3 py-1.5 text-[11px] font-semibold text-[#2E7D5B]';
+            : 'mx-1 rounded-lg bg-[#E3F1E9] px-3 py-1.5 text-[11px] font-semibold text-[#1F7A4A]';
 
         if (detailFeedbackTimer !== null) {
             window.clearTimeout(detailFeedbackTimer);
@@ -730,29 +769,284 @@ function setupTaskHeader(root) {
         }
     };
 
+    const TASK_STATUS_SEQUENCE = ['INICIADO', 'PROCESO', 'TERMINADOS'];
+    const TASK_STATUS_BOARD_LABELS = {
+        INICIADO: 'Iniciado',
+        PROCESO: 'Proceso',
+        TERMINADOS: 'Terminados',
+    };
+
+    const moveTaskToStatus = async (taskId, nextStatus) => {
+        const baseTask = tasks.find((task) => task.id === String(taskId));
+
+        if (!baseTask || !TASK_STATUS_SEQUENCE.includes(nextStatus) || baseTask.status === nextStatus) {
+            return false;
+        }
+
+        const updatedTask = {
+            ...baseTask,
+            status: nextStatus,
+            progress_percentage: nextStatus === 'TERMINADOS'
+                ? 100
+                : calculateProgress(baseTask.subtasks, nextStatus),
+        };
+
+        const result = await saveTasks(tasks.map((task) => (
+            task.id === baseTask.id ? updatedTask : task
+        )));
+
+        if (result.ok) {
+            announce(`Tarea movida a ${TASK_STATUS_BOARD_LABELS[nextStatus]}: ${baseTask.title}`);
+
+            return true;
+        }
+
+        notify(result.message || 'No se pudo mover la tarea.', 'error');
+        renderTaskViews();
+
+        return false;
+    };
+
     const updateNavigation = () => {
         viewButtons.forEach((button) => {
             const isActive = button.dataset.viewTarget === activeView;
-            const icon = button.querySelector('[data-view-icon]');
 
             button.setAttribute('aria-selected', String(isActive));
-            icon.classList.toggle('rounded-2xl', isActive);
-            icon.classList.toggle('rounded-full', !isActive);
-            icon.classList.toggle('border-4', isActive);
-            icon.classList.toggle('border-2', !isActive);
-            icon.classList.toggle('border-negro', isActive);
-            icon.classList.toggle('border-slate-400', !isActive);
-            icon.classList.toggle('bg-primario', isActive);
-            icon.classList.toggle('bg-white', !isActive);
-            icon.classList.toggle('text-white', isActive);
-            icon.classList.toggle('text-primario', !isActive);
-            icon.classList.toggle('shadow-lg', isActive);
-            icon.classList.toggle('shadow-sm', !isActive);
+            button.classList.toggle('border-primario', isActive);
+            button.classList.toggle('bg-primario-suave', isActive);
+            button.classList.toggle('border-transparent', !isActive);
+            button.classList.toggle('bg-white', !isActive);
+
+            const badge = button.querySelector('[data-nav-badge]');
+            badge?.classList.toggle('hidden', !isActive);
         });
+
+        const navToggle = root.querySelector('[data-nav-toggle]');
+        navToggle?.classList.toggle('hidden', activeView === 'home');
+        root.querySelector('#main-nav')?.classList.toggle('hidden', activeView !== 'home');
 
         Object.entries(views).forEach(([viewName, view]) => {
             view.classList.toggle('hidden', viewName !== activeView);
         });
+    };
+
+    const showView = (viewName, updateHistory = true) => {
+        if (!Object.hasOwn(viewHashes, viewName)) {
+            return;
+        }
+
+        activeView = viewName;
+
+        if (updateHistory) {
+            window.history.pushState({ view: viewName }, '', viewHashes[viewName]);
+        }
+
+        updateNavigation();
+        renderTaskViews();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('popstate', () => {
+        activeView = viewFromHash();
+        updateNavigation();
+        renderTaskViews();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    if (!Object.values(viewHashes).includes(window.location.hash)) {
+        window.history.replaceState({ view: 'home' }, '', viewHashes.home);
+    }
+
+    const GANTT_DAYS = 31;
+    const ganttState = {
+        rangeStart: shiftDate(selectedDate, -14),
+    };
+
+    const dayDifference = (later, earlier) => {
+        const toUtc = (value) => {
+            const [year, month, day] = value.split('-').map(Number);
+
+            return Date.UTC(year, month - 1, day);
+        };
+
+        return Math.round((toUtc(later) - toUtc(earlier)) / 86400000);
+    };
+
+    const createGanttBar = (task) => {
+        const startIndex = Math.max(0, dayDifference(task.start_date, ganttState.rangeStart));
+        const endIndex = Math.min(GANTT_DAYS - 1, dayDifference(task.due_date, ganttState.rangeStart));
+        const palette = [
+            { background: 'bg-[#0E3A44]', text: 'text-white' },
+            { background: 'bg-[#2B4BB5]', text: 'text-white' },
+            { background: 'bg-[#702632]', text: 'text-white' },
+            { background: 'bg-[#C99AA4]', text: 'text-[#3A1F26]' },
+            { background: 'bg-[#E7C063]', text: 'text-[#3F2E06]' },
+        ];
+        const color = palette[Number(task.project_id || 0) % palette.length];
+        const statusLabel = { INICIADO: 'Iniciado', PROCESO: 'Proceso', TERMINADOS: 'Terminado' }[task.status];
+        const statusText = { INICIADO: 'text-[#0F6B5F]', PROCESO: 'text-[#5A3E08]', TERMINADOS: 'text-[#1F7A4A]' }[task.status];
+        const completedSubtasks = task.subtasks.filter((subtask) => subtask.done).length;
+        const spanDays = endIndex - startIndex + 1;
+
+        const bar = document.createElement('button');
+        bar.type = 'button';
+        bar.draggable = true;
+        bar.dataset.ganttTaskId = task.id;
+        bar.dataset.taskViewId = task.id;
+        bar.style.gridColumn = `${startIndex + 1} / ${endIndex + 2}`;
+        bar.className = `z-10 flex h-9 w-full min-w-[24px] cursor-grab items-center gap-2 justify-self-start overflow-hidden rounded-full px-3 text-left uppercase shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primario/60 active:cursor-grabbing ${color.background} ${color.text}`;
+        bar.title = `${task.title}: ${task.start_date} → ${task.due_date}. Arrastra para mover las fechas.`;
+        bar.setAttribute('aria-label', `${task.title}, ${statusLabel}, del ${task.start_date} al ${task.due_date}. ${task.progress_percentage}% completado.`);
+
+        if (task.is_important && spanDays >= 4) {
+            const important = document.createElement('span');
+            important.className = 'shrink-0 rounded-full bg-aviso px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] text-[#4A3507]';
+            important.textContent = 'Importante';
+            bar.append(important);
+        }
+
+        if (spanDays >= 5) {
+            const status = document.createElement('span');
+            status.className = `hidden shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] sm:inline ${statusText}`;
+            status.textContent = statusLabel;
+            bar.append(status);
+        }
+
+        if (spanDays >= 5) {
+            const title = document.createElement('span');
+            title.className = 'min-w-0 flex-1 truncate text-[10px] font-extrabold tracking-[0.04em]';
+            title.textContent = task.title;
+            bar.append(title);
+        }
+
+        if (spanDays >= 6) {
+            const counts = document.createElement('span');
+            counts.className = 'hidden shrink-0 text-[9px] font-extrabold numeric sm:inline';
+            counts.textContent = `${completedSubtasks}/${task.subtasks.length}`;
+            bar.append(counts);
+        }
+
+        if (spanDays >= 3) {
+            const progress = document.createElement('span');
+            progress.className = 'shrink-0 text-[9px] font-extrabold numeric';
+            progress.textContent = `${task.progress_percentage}%`;
+            bar.append(progress);
+        }
+
+        const avatars = document.createElement('span');
+        avatars.className = 'hidden shrink-0 items-center md:flex';
+
+        if (spanDays >= 8) {
+            (task.assignees.length > 0 ? task.assignees : task.responsible_name ? [{ id: task.responsible_id, name: task.responsible_name }] : [])
+                .slice(0, 3)
+                .forEach((person, index) => {
+                    const avatar = document.createElement('span');
+                    avatar.className = `-ml-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 text-[7px] font-extrabold text-white ${['bg-[#0F6B5F]', 'bg-[#912740]', 'bg-[#2B4BB5]'][index]}`;
+                    avatar.textContent = person.name.split(/\s+/).slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join('');
+                    avatars.append(avatar);
+                });
+        }
+
+        bar.append(avatars);
+
+        if (spanDays < 5) {
+            const label = document.createElement('span');
+            label.className = 'z-10 min-w-0 cursor-pointer self-center truncate pl-2 text-[10px] font-extrabold uppercase tracking-[0.04em] text-negro';
+            label.style.gridColumn = `${endIndex + 2} / -1`;
+            label.dataset.ganttTaskId = task.id;
+            label.dataset.taskViewId = task.id;
+            label.textContent = task.title;
+
+            return [bar, label];
+        }
+
+        return [bar];
+    };
+
+    const renderGanttView = () => {
+        ganttState.rangeStart = shiftDate(selectedDate, -14);
+        const rangeEnd = shiftDate(ganttState.rangeStart, GANTT_DAYS - 1);
+        const startDate = dateFromString(ganttState.rangeStart);
+        const monthFormatter = new Intl.DateTimeFormat('es', { month: 'long', year: 'numeric' });
+        const monthLabels = [-1, 0, 1].map((offset) => monthFormatter
+            .format(new Date(startDate.getFullYear(), startDate.getMonth() + offset, 1))
+            .replace(' de ', ' '));
+
+        root.querySelector('#gantt-previous-month').textContent = monthLabels[0];
+        root.querySelector('#gantt-current-month').textContent = monthLabels[1];
+        root.querySelector('#gantt-next-month').textContent = monthLabels[2];
+
+        const weekdayFormatter = new Intl.DateTimeFormat('es', { weekday: 'narrow' });
+        const daysElement = root.querySelector('#gantt-days');
+        daysElement.style.gridTemplateColumns = `repeat(${GANTT_DAYS}, minmax(0, 1fr))`;
+
+        const today = toDateString(new Date());
+        daysElement.replaceChildren(...Array.from({ length: GANTT_DAYS }, (_, index) => {
+            const dateString = shiftDate(ganttState.rangeStart, index);
+            const date = dateFromString(dateString);
+            const cell = document.createElement('div');
+            cell.className = `flex flex-col items-center gap-0.5 py-1 text-[9px] ${dateString === today ? 'font-extrabold text-primario' : 'text-gris'}`;
+
+            const number = document.createElement('span');
+            number.className = 'font-bold numeric';
+            number.textContent = String(date.getDate());
+
+            const weekday = document.createElement('span');
+            weekday.className = 'uppercase';
+            weekday.textContent = weekdayFormatter.format(date).charAt(0).toUpperCase();
+
+            cell.append(number, weekday);
+
+            return cell;
+        }));
+
+        const weekends = root.querySelector('#gantt-weekends');
+        weekends.style.gridTemplateColumns = `repeat(${GANTT_DAYS}, minmax(0, 1fr))`;
+        weekends.replaceChildren(...Array.from({ length: GANTT_DAYS }, (_, index) => {
+            const date = dateFromString(shiftDate(ganttState.rangeStart, index));
+            const cell = document.createElement('div');
+            cell.className = date.getDay() === 0 || date.getDay() === 6 ? 'bg-negro/[0.04]' : '';
+
+            return cell;
+        }));
+
+        const todayIndex = dayDifference(today, ganttState.rangeStart);
+        const todayLine = root.querySelector('#gantt-today-line');
+        todayLine.classList.toggle('hidden', todayIndex < 0 || todayIndex >= GANTT_DAYS);
+        todayLine.style.left = `${((todayIndex + 0.5) / GANTT_DAYS) * 100}%`;
+
+        const focusDate = dateFromString(selectedDate);
+        root.querySelector('#gantt-focus-date').textContent = new Intl.DateTimeFormat('es', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        }).format(focusDate);
+
+        const visibleTasks = tasks
+            .filter((task) => task.start_date && task.due_date && task.due_date >= ganttState.rangeStart && task.start_date <= rangeEnd)
+            .sort((first, second) => first.start_date.localeCompare(second.start_date) || first.title.localeCompare(second.title));
+
+        const rowsElement = root.querySelector('#gantt-rows');
+
+        if (visibleTasks.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'rounded-xl border border-dashed border-borde bg-white/60 px-4 py-10 text-center text-sm font-medium text-gris';
+            empty.textContent = 'No hay metas en este rango de fechas.';
+            rowsElement.replaceChildren(empty);
+
+            return;
+        }
+
+        rowsElement.replaceChildren(...visibleTasks.map((task) => {
+            const row = document.createElement('div');
+            row.className = 'grid items-center';
+            row.style.gridTemplateColumns = `repeat(${GANTT_DAYS}, minmax(0, 1fr))`;
+            row.setAttribute('role', 'listitem');
+            row.append(...createGanttBar(task));
+
+            return row;
+        }));
     };
 
     const renderHomeView = () => {
@@ -770,18 +1064,18 @@ function setupTaskHeader(root) {
         root.querySelector('#agenda-selected-date').textContent = formatCarouselDate(selectedDate);
 
         const metrics = [
-            { text: `${dateTasks.length} tareas`, className: 'text-primario' },
-            { text: `${dateTasks.filter((task) => task.status === 'TERMINADOS').length} terminadas`, className: 'text-[#5D9C78]' },
-            { text: `${dateTasks.filter((task) => task.status === 'PROCESO').length} en proceso`, className: 'text-[#B18A43]' },
-            { text: `${dateTasks.filter((task) => task.status === 'INICIADO').length} iniciadas`, className: 'text-[#B47C88]' },
+            { text: `${dateTasks.length} metas`, className: 'font-bold text-primario' },
+            { text: `${dateTasks.reduce((total, task) => total + task.subtasks.length, 0)} tareas`, className: 'font-bold text-gris' },
+            { text: `${dateTasks.filter((task) => task.status === 'TERMINADOS').length} terminadas`, className: 'font-bold text-[#1F7A4A]' },
+            { text: `${dateTasks.filter((task) => task.status === 'INICIADO').length} iniciadas`, className: 'font-bold text-[#0F6B5F]' },
         ];
         const statsElements = [];
 
         metrics.forEach((metric, index) => {
             if (index > 0) {
                 const separator = document.createElement('span');
-                separator.className = 'text-slate-300';
-                separator.textContent = '–';
+                separator.className = 'text-gris/40';
+                separator.textContent = '·';
                 statsElements.push(separator);
             }
 
@@ -804,24 +1098,19 @@ function setupTaskHeader(root) {
         Object.entries(homeModeViews).forEach(([mode, view]) => {
             view.classList.toggle('hidden', mode !== homeMode);
         });
-        const boardCards = dateTasks.map(createBoardTaskCard);
+        const boardCards = dateTasks.map((task) => createBoardTaskCard(task));
 
         root.querySelector('#home-board-columns').replaceChildren(...boardCards);
         root.querySelector('#home-board-columns').classList.toggle('hidden', dateTasks.length === 0);
         root.querySelector('#home-board-empty').classList.toggle('hidden', dateTasks.length > 0);
 
-        const listItems = root.querySelector('#home-list-items');
-        listItems.replaceChildren(...dateTasks.map(createTaskViewCard));
-        root.querySelector('#home-list-empty').classList.toggle('hidden', dateTasks.length > 0);
-
-        const gridItems = root.querySelector('#home-grid-items');
-        gridItems.replaceChildren(...dateTasks.map((task) => createBoardTaskCard(task, false)));
-        root.querySelector('#home-grid-empty').classList.toggle('hidden', dateTasks.length > 0);
+        root.querySelector('#home-date-header').classList.toggle('hidden', homeMode !== 'board');
+        renderGanttView();
 
         const monthLabel = new Intl.DateTimeFormat('es', {
             month: 'long',
             year: 'numeric',
-        }).format(displayedCalendarMonth);
+        }).format(displayedCalendarMonth).replace(' de ', ' ');
         root.querySelector('#home-calendar-month').textContent = monthLabel;
 
         const firstMonthDay = new Date(
@@ -830,41 +1119,65 @@ function setupTaskHeader(root) {
             1
         );
         const calendarStart = new Date(firstMonthDay);
-        calendarStart.setDate(calendarStart.getDate() - ((calendarStart.getDay() + 6) % 7));
+        calendarStart.setDate(calendarStart.getDate() - calendarStart.getDay());
         const calendarButtons = Array.from({ length: 42 }, (_, index) => {
             const date = new Date(calendarStart);
             date.setDate(calendarStart.getDate() + index);
             const dateString = toDateString(date);
             const isSelected = dateString === selectedDate;
+            const isToday = dateString === toDateString(new Date());
             const isCurrentMonth = date.getMonth() === displayedCalendarMonth.getMonth();
-            const hasTasks = tasks.some((task) => taskOccursOnDate(task, dateString));
+            const dateTasks = tasks
+                .filter((task) => taskOccursOnDate(task, dateString))
+                .sort((first, second) => first.title.localeCompare(second.title));
             const button = document.createElement('button');
             button.type = 'button';
             button.dataset.calendarDate = dateString;
             button.setAttribute('aria-label', formatCarouselDate(dateString));
             button.setAttribute('aria-pressed', String(isSelected));
-            button.className = `relative mx-auto flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-primario/30 sm:h-10 sm:w-10 ${
+            button.className = `flex min-h-[72px] flex-col gap-1 rounded-lg border p-1.5 text-left transition focus:outline-none focus:ring-2 focus:ring-primario/40 sm:min-h-[88px] ${
                 isSelected
-                    ? 'bg-primario text-white'
+                    ? 'border-2 border-primario bg-primario-suave'
                     : isCurrentMonth
-                        ? 'text-negro hover:bg-primario-suave'
-                        : 'text-slate-300 hover:bg-fondo'
+                        ? `border-borde bg-[#FDFBFA] hover:border-primario/40 ${isToday ? 'ring-2 ring-primario/40' : ''}`
+                        : 'border-transparent bg-fondo/40 text-gris hover:border-borde'
             }`;
 
             const dayNumber = document.createElement('span');
+            dayNumber.className = 'text-[10px] font-bold leading-none numeric';
             dayNumber.textContent = String(date.getDate());
             button.append(dayNumber);
 
-            if (hasTasks) {
-                const taskMarker = document.createElement('span');
-                taskMarker.className = `absolute bottom-1 h-1 w-1 rounded-full ${isSelected ? 'bg-white' : 'bg-primario'}`;
-                button.append(taskMarker);
+            if (isCurrentMonth) {
+                const statusChip = {
+                    INICIADO: 'bg-[#FBF3DF] text-[#5A3E08]',
+                    PROCESO: 'bg-[#E2F2F0] text-[#0F6B5F]',
+                    TERMINADOS: 'bg-[#E5F3EC] text-[#1F7A4A]',
+                };
+
+                dateTasks.slice(0, 2).forEach((task) => {
+                    const chip = document.createElement('span');
+                    chip.className = `block truncate rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-tight ${statusChip[task.status]}`;
+                    chip.textContent = `● ${task.title}`;
+                    button.append(chip);
+                });
+
+                if (dateTasks.length > 2) {
+                    const more = document.createElement('span');
+                    more.className = 'pl-1 text-[8px] font-bold text-gris';
+                    more.textContent = `+${dateTasks.length - 2}`;
+                    button.append(more);
+                }
             }
 
             return button;
         });
 
         root.querySelector('#home-calendar-days').replaceChildren(...calendarButtons);
+        const selectedDateObject = dateFromString(selectedDate);
+        const weekdayLabel = new Intl.DateTimeFormat('es', { weekday: 'long' }).format(selectedDateObject);
+        const monthName = new Intl.DateTimeFormat('es', { month: 'long' }).format(selectedDateObject);
+        root.querySelector('#agenda-day-title').textContent = `${weekdayLabel} ${selectedDateObject.getDate()} · ${monthName} · ${selectedDateObject.getFullYear()}`;
         const calendarTasks = root.querySelector('#home-calendar-tasks');
         calendarTasks.replaceChildren(...dateTasks.map(createTaskViewCard));
         root.querySelector('#home-calendar-empty').classList.toggle('hidden', dateTasks.length > 0);
@@ -883,34 +1196,35 @@ function setupTaskHeader(root) {
             return first.due_date.localeCompare(second.due_date);
         });
         const statusColumns = [
-            { status: 'INICIADO', title: 'Pendiente', color: 'bg-tab-iniciado' },
-            { status: 'PROCESO', title: 'En progreso', color: 'bg-tab-proceso' },
-            { status: 'TERMINADOS', title: 'Completadas', color: 'bg-tab-terminado' },
+            { status: 'INICIADO', title: 'Iniciado', color: 'bg-tab-iniciado' },
+            { status: 'PROCESO', title: 'Proceso', color: 'bg-tab-proceso' },
+            { status: 'TERMINADOS', title: 'Terminados', color: 'bg-tab-terminado' },
         ];
         const taskColumns = statusColumns.map(({ status, title, color }) => {
             const column = document.createElement('section');
-            column.className = 'flex min-h-[240px] flex-col overflow-hidden rounded-2xl border border-primario/15 bg-white/80 shadow-sm';
+            column.className = 'flex flex-col';
 
             const heading = document.createElement('h2');
-            heading.className = `flex items-center justify-between ${color} px-4 py-4 text-xs font-extrabold uppercase tracking-wide text-negro`;
+            heading.className = `relative z-10 mx-2.5 -mb-3 flex items-center justify-between rounded-t-2xl border-2 border-b-0 border-negro px-4 py-2.5 text-[10px] font-extrabold uppercase tracking-[0.1em] text-negro ${color}`;
 
             const headingTitle = document.createElement('span');
             headingTitle.textContent = title;
 
             const columnTasks = sortedTasks.filter((task) => task.status === status);
             const count = document.createElement('span');
-            count.className = 'rounded-full bg-white/70 px-2 py-0.5 text-[10px]';
-            count.textContent = String(columnTasks.length);
+            count.className = 'numeric';
+            count.textContent = String(columnTasks.length).padStart(2, '0');
             heading.append(headingTitle, count);
 
             const list = document.createElement('div');
-            list.className = 'flex-1 space-y-3 p-3';
+            list.className = 'flex-1 space-y-3 rounded-2xl border-2 border-negro bg-white/50 p-3 pt-5 transition-colors';
+            list.dataset.dropStatus = status;
 
             if (columnTasks.length > 0) {
                 list.replaceChildren(...columnTasks.map((task) => createBoardTaskCard(task, false)));
             } else {
                 const empty = document.createElement('p');
-                empty.className = 'flex h-full min-h-[140px] items-center justify-center rounded-xl border border-dashed border-gris/15 bg-fondo/70 px-3 py-6 text-center text-xs font-medium text-slate-500';
+                empty.className = 'flex h-full min-h-[140px] items-center justify-center rounded-xl border border-dashed border-borde bg-white px-3 py-6 text-center text-xs font-medium text-gris';
                 empty.textContent = 'Sin tareas';
                 list.append(empty);
             }
@@ -960,6 +1274,10 @@ function setupTaskHeader(root) {
             activeTaskButton.disabled = true;
             activeTaskButton.title = 'Agrega una tarea para iniciar';
             timerCaption.textContent = 'No hay tareas activas';
+            const reminder = root.querySelector('#header-reminder');
+            if (reminder) {
+                reminder.textContent = 'Sin vencimientos próximos';
+            }
             Object.values(timerElements).forEach((element) => {
                 element.textContent = '--';
             });
@@ -980,6 +1298,14 @@ function setupTaskHeader(root) {
             });
 
             return;
+        }
+
+        const reminder = root.querySelector('#header-reminder');
+        if (reminder) {
+            const daysUntilDue = Math.ceil((deadline - Date.now()) / (24 * 60 * 60 * 1000));
+            reminder.textContent = daysUntilDue <= 0
+                ? `La meta “${task.title}” vence hoy`
+                : `La meta “${task.title}” vence en ${daysUntilDue} ${daysUntilDue === 1 ? 'día' : 'días'}`;
         }
 
         const remainingSeconds = Math.max(0, Math.floor((deadline - Date.now()) / 1000));
@@ -1054,7 +1380,7 @@ function setupTaskHeader(root) {
         detailDialog.querySelector('#detail-project-category').textContent = task.category;
         detailDialog.querySelector('#detail-task-title').textContent = task.title;
         detailDialog.querySelector('#detail-task-description').textContent = task.description || 'Sin descripción';
-        detailDialog.querySelector('#detail-status-text').textContent = TASK_STATUSES[task.status];
+        detailDialog.querySelector('#detail-status-select').value = API_STATUS_BY_TASK_STATUS[task.status] ?? 'pendiente';
         detailResponsibleSelect.value = task.responsible_id || '';
         detailDialog.querySelector('#detail-percent-value').textContent = `${task.progress_percentage}%`;
         detailDialog.querySelector('#detail-start-date').textContent = formatDueDate(task.start_date);
@@ -1089,7 +1415,7 @@ function setupTaskHeader(root) {
             const text = document.createElement('span');
             text.textContent = subtask.text;
             text.className = subtask.done
-                ? 'break-words text-xs font-medium text-slate-400 line-through'
+                ? 'break-words text-xs font-medium text-gris line-through'
                 : 'break-words text-xs font-medium text-gris';
 
             const header = document.createElement('div');
@@ -1097,7 +1423,7 @@ function setupTaskHeader(root) {
 
             const state = document.createElement('span');
             state.className = subtask.done
-                ? 'rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#4D8767]'
+                ? 'rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#1F7A4A]'
                 : 'rounded-full bg-primario-suave px-2 py-1 text-[9px] font-bold text-primario';
             state.textContent = subtask.done ? 'Hecha' : 'Pendiente';
             header.append(text, state);
@@ -1303,10 +1629,18 @@ function setupTaskHeader(root) {
 
     viewButtons.forEach((button) => {
         button.addEventListener('click', () => {
-            activeView = button.dataset.viewTarget;
-            updateNavigation();
-            renderTaskViews();
+            showView(button.dataset.viewTarget);
         });
+    });
+
+    root.querySelector('[data-nav-toggle]')?.addEventListener('click', () => {
+        showView('home');
+    });
+
+    root.querySelector('[data-calendar-today]')?.addEventListener('click', () => {
+        selectedDate = toDateString(new Date());
+        displayedCalendarMonth = startOfMonth(selectedDate);
+        renderHomeView();
     });
 
     root.querySelectorAll('[data-date-shift]').forEach((button) => {
@@ -1383,8 +1717,6 @@ function setupTaskHeader(root) {
 
     [
         root.querySelector('#home-board-columns'),
-        root.querySelector('#home-grid-items'),
-        root.querySelector('#home-list-items'),
         root.querySelector('#home-calendar-tasks'),
     ].forEach((container) => {
         container.addEventListener('click', (event) => {
@@ -1399,6 +1731,136 @@ function setupTaskHeader(root) {
                 fillDetailDialog(task);
             }
         });
+
+        container.addEventListener('keydown', (event) => {
+            if (!['Enter', ' '].includes(event.key) || !(event.target instanceof Element)) {
+                return;
+            }
+
+            const button = event.target.closest('[data-task-view-id]');
+            const task = tasks.find((item) => item.id === button?.dataset.taskViewId);
+
+            if (task) {
+                event.preventDefault();
+                fillDetailDialog(task);
+            }
+        });
+    });
+
+    const ganttRows = root.querySelector('#gantt-rows');
+    let draggedGanttTaskId = null;
+
+    const moveGanttTaskByDays = async (task, deltaDays) => {
+        if (!task || deltaDays === 0) {
+            return false;
+        }
+
+        const updatedTask = {
+            ...task,
+            start_date: shiftDate(task.start_date, deltaDays),
+            due_date: shiftDate(task.due_date, deltaDays),
+        };
+        const result = await saveTasks(tasks.map((item) => (item.id === task.id ? updatedTask : item)));
+
+        if (result.ok) {
+            announce(`Fechas actualizadas: ${task.title}`);
+
+            return true;
+        }
+
+        notify(result.message || 'No se pudieron mover las fechas de la tarea.', 'error');
+        renderTaskViews();
+
+        return false;
+    };
+
+    ganttRows.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const bar = event.target.closest('[data-gantt-task-id]');
+        const task = tasks.find((item) => item.id === bar?.dataset.ganttTaskId);
+
+        if (task) {
+            fillDetailDialog(task);
+        }
+    });
+
+    ganttRows.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || !(event.target instanceof Element)) {
+            return;
+        }
+
+        const bar = event.target.closest('[data-gantt-task-id]');
+        const task = tasks.find((item) => item.id === bar?.dataset.ganttTaskId);
+
+        if (!task) {
+            return;
+        }
+
+        event.preventDefault();
+        void moveGanttTaskByDays(task, event.key === 'ArrowRight' ? 1 : -1).then((moved) => {
+            if (moved) {
+                root.querySelector(`#gantt-rows [data-gantt-task-id="${task.id}"]`)?.focus();
+            }
+        });
+    });
+
+    ganttRows.addEventListener('dragstart', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const bar = event.target.closest('[data-gantt-task-id]');
+
+        if (!bar || event.dataTransfer === null) {
+            return;
+        }
+
+        draggedGanttTaskId = bar.dataset.ganttTaskId;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedGanttTaskId);
+        bar.classList.add('opacity-60');
+    });
+
+    ganttRows.addEventListener('dragend', (event) => {
+        if (event.target instanceof Element) {
+            event.target.closest('[data-gantt-task-id]')?.classList.remove('opacity-60');
+        }
+
+        draggedGanttTaskId = null;
+    });
+
+    ganttRows.addEventListener('dragover', (event) => {
+        if (draggedGanttTaskId === null) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (event.dataTransfer !== null) {
+            event.dataTransfer.dropEffect = 'move';
+        }
+    });
+
+    ganttRows.addEventListener('drop', (event) => {
+        if (draggedGanttTaskId === null) {
+            return;
+        }
+
+        event.preventDefault();
+        const task = tasks.find((item) => item.id === draggedGanttTaskId);
+        const bounds = ganttRows.getBoundingClientRect();
+        const ratio = Math.min(0.999, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+        const dropDate = shiftDate(ganttState.rangeStart, Math.floor(ratio * GANTT_DAYS));
+        draggedGanttTaskId = null;
+
+        if (!task) {
+            return;
+        }
+
+        void moveGanttTaskByDays(task, dayDifference(dropDate, task.start_date));
     });
 
     root.querySelector('[data-close-profile]').addEventListener('click', () => {
@@ -1482,6 +1944,138 @@ function setupTaskHeader(root) {
         }
     });
 
+    const taskBoard = root.querySelector('#tasks-view-list');
+    let draggedTaskId = null;
+    const dropHighlightClasses = ['ring-2', 'ring-primario/60', 'bg-primario-suave/40'];
+
+    const clearDropHighlights = () => {
+        taskBoard.querySelectorAll('[data-drop-status]').forEach((list) => {
+            list.classList.remove(...dropHighlightClasses);
+        });
+    };
+
+    taskBoard.addEventListener('dragstart', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const card = event.target.closest('[data-task-view-id]');
+
+        if (!card || !card.draggable || event.dataTransfer === null) {
+            return;
+        }
+
+        draggedTaskId = card.dataset.taskViewId;
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', draggedTaskId);
+        card.classList.add('opacity-50');
+    });
+
+    taskBoard.addEventListener('dragend', (event) => {
+        if (event.target instanceof Element) {
+            event.target.closest('[data-task-view-id]')?.classList.remove('opacity-50');
+        }
+
+        clearDropHighlights();
+        draggedTaskId = null;
+    });
+
+    taskBoard.addEventListener('dragover', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const list = event.target.closest('[data-drop-status]');
+
+        if (!list || draggedTaskId === null) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (event.dataTransfer !== null) {
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        taskBoard.querySelectorAll('[data-drop-status]').forEach((other) => {
+            if (other !== list) {
+                other.classList.remove(...dropHighlightClasses);
+            }
+        });
+        list.classList.add(...dropHighlightClasses);
+    });
+
+    taskBoard.addEventListener('dragleave', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const list = event.target.closest('[data-drop-status]');
+
+        if (list && !(event.relatedTarget instanceof Node && list.contains(event.relatedTarget))) {
+            list.classList.remove(...dropHighlightClasses);
+        }
+    });
+
+    taskBoard.addEventListener('drop', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const list = event.target.closest('[data-drop-status]');
+
+        if (!list) {
+            return;
+        }
+
+        event.preventDefault();
+        clearDropHighlights();
+        const taskId = draggedTaskId || event.dataTransfer?.getData('text/plain') || '';
+        draggedTaskId = null;
+
+        if (taskId !== '') {
+            void moveTaskToStatus(taskId, list.dataset.dropStatus);
+        }
+    });
+
+    taskBoard.addEventListener('keydown', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const card = event.target.closest('[data-task-view-id]');
+        const task = tasks.find((item) => item.id === card?.dataset.taskViewId);
+
+        if (!task) {
+            return;
+        }
+
+        if (['Enter', ' '].includes(event.key)) {
+            event.preventDefault();
+            fillDetailDialog(task);
+
+            return;
+        }
+
+        if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+            return;
+        }
+
+        const currentIndex = TASK_STATUS_SEQUENCE.indexOf(task.status);
+        const nextStatus = TASK_STATUS_SEQUENCE[currentIndex + (event.key === 'ArrowRight' ? 1 : -1)];
+
+        if (nextStatus === undefined) {
+            return;
+        }
+
+        event.preventDefault();
+        void moveTaskToStatus(task.id, nextStatus).then((moved) => {
+            if (moved) {
+                root.querySelector(`#tasks-view-list [data-task-view-id="${task.id}"]`)?.focus();
+            }
+        });
+    });
+
     activeTaskButton.addEventListener('click', () => {
         const task = getActiveTask();
 
@@ -1509,6 +2103,24 @@ function setupTaskHeader(root) {
         const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
 
         void deleteTask(task);
+    });
+
+    detailStatusSelect.addEventListener('change', () => {
+        const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
+        const nextStatus = normalizeTaskStatus(detailStatusSelect.value);
+
+        if (!isAvailable || !task || !nextStatus) {
+            return;
+        }
+
+        void moveTaskToStatus(task.id, nextStatus).then((moved) => {
+            if (moved) {
+                const updatedTask = tasks.find((item) => item.id === task.id);
+                detailDialog.querySelector('#detail-percent-value').textContent = `${updatedTask?.progress_percentage ?? task.progress_percentage}%`;
+            } else {
+                detailStatusSelect.value = API_STATUS_BY_TASK_STATUS[task.status] ?? 'pendiente';
+            }
+        });
     });
 
     detailResponsibleSelect.addEventListener('change', async () => {

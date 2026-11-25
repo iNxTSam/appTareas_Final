@@ -73,9 +73,9 @@
                         <div>
                             <label for="task-status" class="field-label">Estado</label>
                             <select id="task-status" name="status" class="field-input">
-                                <option value="pendiente">Pendiente</option>
-                                <option value="en_progreso">En progreso</option>
-                                <option value="completada">Completada</option>
+                                <option value="pendiente">Iniciado</option>
+                                <option value="en_progreso">Proceso</option>
+                                <option value="completada">Terminado</option>
                             </select>
                         </div>
                         <div>
@@ -156,8 +156,12 @@
                     </div>
                     <div class="grid grid-cols-2 border-t border-gris/15 text-[10px] sm:grid-cols-[1fr_1fr_1fr_1fr_0.9fr]">
                         <div class="border-r border-gris/15 px-5 py-3 sm:px-4">
-                            <span class="block text-slate-500">Estado</span>
-                            <span id="detail-status-text" class="mt-1 block font-bold text-negro"></span>
+                            <label for="detail-status-select" class="block text-slate-500">Estado</label>
+                            <select id="detail-status-select" class="mt-1 w-full rounded-lg border border-gris/20 bg-white px-2 py-1 text-[10px] font-bold text-negro outline-none focus:border-primario focus:ring-2 focus:ring-primario/20">
+                                <option value="pendiente">Iniciado</option>
+                                <option value="en_progreso">Proceso</option>
+                                <option value="completada">Terminado</option>
+                            </select>
                         </div>
                         <div class="border-b border-gris/15 px-5 py-3 sm:border-b-0 sm:border-r sm:px-4">
                             <span class="block text-slate-500">Fecha inicio</span>

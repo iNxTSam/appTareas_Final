@@ -1,56 +1,53 @@
         <div class="flex flex-1 justify-center">
             <section id="view-home" role="tabpanel" aria-labelledby="btn-nav-home" class="w-full flex-1">
-                <div class="mx-auto flex w-full max-w-[1600px] flex-col px-4 pb-10 pt-2 sm:px-8">
-                    <div class="order-1 flex justify-center">
-                        <div class="flex flex-col items-center">
-                            <p id="home-view-selector-label" class="mb-2 text-[9px] font-extrabold uppercase tracking-[0.16em] text-gris">Vistas</p>
-                            <div class="flex items-center gap-1.5 rounded-2xl border border-primario/10 bg-white/90 p-1.5 shadow-md shadow-primario/5" role="group" aria-labelledby="home-view-selector-label">
-                                <button
-                                    type="button"
-                                    data-home-mode="board"
-                                    aria-label="Vista de tablero"
-                                    aria-pressed="true"
-                                    class="btn-icon-fill h-11 w-11 rounded-xl"
-                                >
-                                    <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <rect x="4" y="5" width="7" height="14" rx="1" stroke-width="2"/>
-                                        <rect x="13" y="5" width="7" height="8" rx="1" stroke-width="2"/>
-                                        <rect x="13" y="15" width="7" height="4" rx="1" stroke-width="2"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    data-home-mode="list"
-                                    aria-label="Vista de lista"
-                                    aria-pressed="false"
-                                    class="btn-icon-outline h-11 w-11 rounded-xl"
-                                >
-                                    <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>
-                                    </svg>
-                                </button>
-                                <button
-                                    type="button"
-                                    data-home-mode="grid"
-                                    aria-label="Vista en cuadrícula"
-                                    aria-pressed="false"
-                                    class="btn-icon-outline h-11 w-11 rounded-xl"
-                                >
-                                    <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <rect x="4" y="5" width="6" height="14" rx="1" stroke-width="2"/>
-                                        <rect x="14" y="5" width="6" height="14" rx="1" stroke-width="2"/>
-                                    </svg>
-                                </button>
-                            </div>
+                <div class="mx-auto flex w-full max-w-[1440px] flex-col px-4 pb-28 pt-6 sm:px-10">
+                    <div class="flex justify-center">
+                        <div class="flex items-center gap-1 rounded-full border border-primario/10 bg-white/70 p-1 shadow-sm" role="group" aria-label="Vistas del Home">
+                            <button
+                                type="button"
+                                data-home-mode="board"
+                                aria-label="Vista de tarjetas"
+                                aria-pressed="true"
+                                class="btn-icon-fill h-9 w-9"
+                            >                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect x="3" y="6" width="12" height="12" rx="2" stroke-width="1.75"/>
+                                    <rect x="17" y="8" width="4" height="8" rx="1" stroke-width="1.75"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                data-home-mode="gantt"
+                                aria-label="Vista de diagrama Gantt"
+                                aria-pressed="false"
+                                class="btn-icon-outline h-9 w-9"
+                            >
+                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-width="1.75" d="M4 7h9M7 12h11M10 17h7M4 4v16"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                aria-label="Tercera vista, próximamente"
+                                title="Próximamente"
+                                disabled
+                                class="inline-flex h-9 w-9 items-center justify-center rounded-full text-gris/30"
+                            >
+                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect x="4" y="4" width="7" height="7" rx="1" stroke-width="1.75"/>
+                                    <rect x="13" y="4" width="7" height="7" rx="1" stroke-width="1.75"/>
+                                    <rect x="4" y="13" width="7" height="7" rx="1" stroke-width="1.75"/>
+                                    <rect x="13" y="13" width="7" height="7" rx="1" stroke-width="1.75"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="order-3 mx-auto mt-5 grid w-full max-w-[1440px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:mt-3 sm:gap-4">
+                    <div id="home-date-header" class="mx-auto mt-8 grid w-full max-w-[1200px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-6">
                         <button
                             type="button"
                             data-date-shift="-1"
                             aria-label="Mostrar día anterior"
-                            class="group inline-flex h-9 w-9 min-w-0 items-center justify-center gap-1.5 rounded-full border border-transparent text-[10px] font-semibold text-slate-500 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:h-auto sm:w-auto sm:justify-self-end sm:px-2.5 sm:py-1.5 sm:text-sm"
+                            class="group inline-flex min-w-0 items-center justify-center gap-1.5 justify-self-end rounded-full border border-transparent px-2 py-1.5 text-xs font-bold text-gris transition hover:border-primario/20 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:text-sm"
                         >
                             <svg aria-hidden="true" class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
@@ -58,14 +55,14 @@
                             <span id="previous-date-label" class="hidden truncate sm:inline"></span>
                         </button>
                         <div class="min-w-0 px-1 text-center">
-                            <h1 id="selected-date-label" class="whitespace-nowrap text-2xl font-extrabold leading-tight tracking-tight text-negro sm:text-4xl lg:text-5xl"><span class="sr-only">Fecha seleccionada</span></h1>
-                            <p id="selected-date-stats" class="mt-1 flex flex-wrap items-center justify-center gap-x-1.5 text-[10px] font-medium sm:text-sm"></p>
+                            <h1 id="selected-date-label" class="whitespace-nowrap text-2xl font-extrabold leading-tight tracking-tight text-negro sm:text-[32px]"><span class="sr-only">Fecha seleccionada</span></h1>
+                            <p id="selected-date-stats" class="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-[12px] font-medium text-gris"></p>
                         </div>
                         <button
                             type="button"
                             data-date-shift="1"
                             aria-label="Mostrar día siguiente"
-                            class="group inline-flex h-9 w-9 min-w-0 items-center justify-center gap-1.5 rounded-full border border-transparent text-[10px] font-semibold text-slate-500 transition hover:border-gris/15 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:h-auto sm:w-auto sm:justify-self-start sm:px-2.5 sm:py-1.5 sm:text-sm"
+                            class="group inline-flex min-w-0 items-center justify-center gap-1.5 justify-self-start rounded-full border border-transparent px-2 py-1.5 text-xs font-bold text-gris transition hover:border-primario/20 hover:bg-white hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 sm:text-sm"
                         >
                             <span id="next-date-label" class="hidden truncate sm:inline"></span>
                             <svg aria-hidden="true" class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,92 +71,105 @@
                         </button>
                     </div>
 
-                    <div id="home-board-view" class="order-4 mx-auto mt-8 w-full max-w-[1440px]">
-                        <div id="home-board-columns" class="carousel-mask draggable-carousel flex gap-4 overflow-x-auto overscroll-x-contain pb-3" tabindex="0" role="region" aria-label="Carrusel horizontal de tareas"></div>
+                    <div id="home-board-view" class="mt-8 w-full">
+                        <div id="home-board-columns" class="carousel-mask draggable-carousel flex gap-5 overflow-x-auto overscroll-x-contain px-10 pb-4 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" tabindex="0" role="region" aria-label="Carrusel horizontal de tareas"></div>
                         <div id="home-board-empty" class="hidden py-14">
                             <div class="mx-auto flex max-w-sm flex-col items-center gap-3 text-center">
                                 <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primario-suave text-primario">
                                     <svg aria-hidden="true" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <rect x="3" y="5" width="18" height="16" rx="2" stroke-width="2"/>
-                                        <path stroke-linecap="round" stroke-width="2" d="M8 3v4M16 3v4M3 10h18"/>
+                                        <rect x="3" y="5" width="18" height="16" rx="2" stroke-width="1.75"/>
+                                        <path stroke-linecap="round" stroke-width="1.75" d="M8 3v4M16 3v4M3 10h18"/>
                                     </svg>
                                 </span>
-                                <p class="text-sm font-medium text-slate-500">No hay tareas para esta fecha.</p>
-                                <button type="button" data-open-new-task class="btn-outline px-4 py-2 text-xs">Agregar una tarea</button>
+                                <p class="text-sm font-medium text-gris">No hay tareas para esta fecha.</p>
+                                <button type="button" data-open-new-task class="btn-outline px-4 py-2 text-[10px]">Agregar una tarea</button>
                             </div>
                         </div>
                     </div>
 
-                    <div id="home-list-view" class="order-4 mx-auto mt-8 hidden w-full max-w-3xl">
-                        <div id="home-list-items" class="space-y-3"></div>
-                        <div id="home-list-empty" class="hidden py-14">
-                            <div class="mx-auto flex max-w-sm flex-col items-center gap-3 text-center">
-                                <p class="text-sm font-medium text-slate-500">No hay tareas para esta fecha.</p>
-                                <button type="button" data-open-new-task class="btn-outline px-4 py-2 text-xs">Agregar una tarea</button>
+                    <div id="home-gantt-view" class="mt-6 hidden w-full">
+                        <div class="flex items-end justify-between gap-4 px-2">
+                            <p id="gantt-previous-month" class="hidden w-1/4 text-left text-sm font-semibold capitalize text-gris sm:block"></p>
+                            <div class="flex-1 text-center">
+                                <h1 id="gantt-current-month" class="text-[28px] font-extrabold capitalize leading-none tracking-tight text-negro sm:text-[32px]"></h1>
+                                <p id="gantt-focus-date" class="mt-2 text-[12px] font-medium capitalize text-gris"></p>
+                                <p class="mt-1 text-[10px] font-medium text-gris/80">Arrastra una barra para mover las fechas. También puedes usar las flechas izquierda y derecha.</p>
                             </div>
+                            <p id="gantt-next-month" class="hidden w-1/4 text-right text-sm font-semibold capitalize text-gris sm:block"></p>
                         </div>
-                    </div>
 
-                    <div id="home-grid-view" class="order-4 mx-auto mt-8 hidden w-full max-w-6xl">
-                        <div id="home-grid-items" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-                        <div id="home-grid-empty" class="hidden py-14">
-                            <div class="mx-auto flex max-w-sm flex-col items-center gap-3 text-center">
-                                <p class="text-sm font-medium text-slate-500">No hay tareas para esta fecha.</p>
-                                <button type="button" data-open-new-task class="btn-outline px-4 py-2 text-xs">Agregar una tarea</button>
+                        <div class="mt-5 overflow-x-auto pb-3">
+                            <div id="gantt-grid" class="relative min-w-[980px]">
+                                <div id="gantt-days" class="grid border-b border-borde/70 pb-2"></div>
+                                <div class="relative mt-2">
+                                    <div id="gantt-weekends" class="pointer-events-none absolute inset-0 grid" aria-hidden="true"></div>
+                                    <div id="gantt-rows" class="relative space-y-2 py-2" role="list" aria-label="Diagrama Gantt de metas"></div>
+                                    <div id="gantt-today-line" class="pointer-events-none absolute bottom-0 top-0 z-20 hidden w-px bg-primario" aria-hidden="true">
+                                        <span class="absolute -left-[5px] -top-1 h-2.5 w-2.5 rounded-full bg-primario"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="view-tasks" role="tabpanel" aria-labelledby="btn-nav-tasks" class="hidden w-full px-4 py-5 sm:px-8">
-                <div class="mb-5 text-center">
-                    <h1 class="text-2xl font-extrabold uppercase tracking-tight text-negro">Tareas</h1>
-                    <p id="tasks-view-date" class="mt-2 text-base font-medium text-slate-500"></p>
-                    <p id="tasks-view-count" class="mt-1 text-xs font-medium text-slate-500">0 tareas</p>
+            <section id="view-tasks" role="tabpanel" aria-labelledby="btn-nav-tasks" class="hidden w-full px-4 pb-28 pt-4 sm:px-10">
+                <div class="text-center">
+                    <p class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-gris">Tareas</p>
+                    <h1 class="mt-2 text-[28px] font-extrabold uppercase leading-none tracking-tight text-negro sm:text-[36px]">Tareas</h1>
+                    <p id="tasks-view-date" class="mt-2 text-[13px] font-medium text-gris"></p>
+                    <p id="tasks-view-count" class="sr-only">0 tareas</p>
                 </div>
-                <div id="tasks-view-list" class="grid items-start gap-4 md:grid-cols-3"></div>
-                <p id="tasks-view-empty" class="hidden py-10 text-center text-sm text-slate-500">Aún no tienes tareas. Usa + para agregar una.</p>
+                <p class="mx-auto mt-6 hidden max-w-[1240px] text-center text-[10px] font-medium text-gris md:block">Arrastra una tarjeta entre columnas para cambiar su estado. También puedes enfocarla y usar las flechas izquierda y derecha.</p>
+                <div id="tasks-view-list" class="mx-auto mt-4 grid w-full max-w-[1240px] items-start gap-5 md:grid-cols-3"></div>
+                <p class="sr-only">Arrastra las tarjetas entre las columnas para cambiar su estado, o enfoca una tarjeta y usa las flechas izquierda y derecha.</p>
+                <div id="tasks-view-empty" class="hidden py-10 text-center">
+                    <p class="text-sm font-medium text-gris">Aún no tienes tareas.</p>
+                    <button type="button" data-open-new-task class="btn-outline mt-4 px-4 py-2 text-[10px]">Agregar una tarea</button>
+                </div>
             </section>
 
-            <section id="view-agenda" role="tabpanel" aria-labelledby="btn-nav-agenda" class="hidden w-full px-4 py-6 sm:px-8">
-                <div class="mx-auto w-full max-w-3xl">
-                    <div class="mb-5 text-center">
-                        <h1 class="text-2xl font-extrabold uppercase tracking-tight text-negro">Calendario</h1>
-                        <p id="agenda-selected-date" class="mt-2 text-base font-medium capitalize text-slate-400"></p>
-                    </div>
-                    <div class="rounded-3xl border border-primario/10 bg-white p-4 shadow-lg shadow-primario/5 sm:p-6">
-                        <div class="mb-5 flex items-center justify-between">
-                            <button
-                                type="button"
-                                data-calendar-shift="-1"
-                                aria-label="Mes anterior"
-                                class="btn-icon-outline"
-                            >
-                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
-                                </svg>
-                            </button>
-                            <h2 id="home-calendar-month" class="text-base font-extrabold capitalize text-negro sm:text-lg"><span class="sr-only">Mes del calendario</span></h2>
-                            <button
-                                type="button"
-                                data-calendar-shift="1"
-                                aria-label="Mes siguiente"
-                                class="btn-icon-outline"
-                            >
-                                <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </button>
+            <section id="view-agenda" role="tabpanel" aria-labelledby="btn-nav-agenda" class="hidden w-full px-4 pb-28 pt-4 sm:px-10">
+                <div class="text-center">
+                    <p class="text-[10px] font-extrabold uppercase tracking-[0.22em] text-gris">Calendario</p>
+                    <h1 class="mt-2 text-[28px] font-extrabold uppercase leading-none tracking-tight text-negro sm:text-[36px]">Calendario</h1>
+                    <p id="agenda-selected-date" class="mt-2 text-[13px] font-medium capitalize text-gris"></p>
+                </div>
+
+                <div class="mx-auto mt-8 flex w-full max-w-[1240px] flex-col gap-6 xl:flex-row xl:items-start">
+                    <div class="min-w-0 flex-1 rounded-2xl border-2 border-negro bg-white p-4 shadow-sm sm:p-6">
+                        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                            <h2 id="home-calendar-month" class="text-base font-extrabold uppercase tracking-[0.08em] text-negro sm:text-lg"><span class="sr-only">Mes del calendario</span></h2>
+                            <div class="flex items-center gap-2">
+                                <button type="button" data-calendar-shift="-1" aria-label="Mes anterior" class="btn-icon-outline h-9 w-9">
+                                    <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 18-6-6 6-6"/>
+                                    </svg>
+                                </button>
+                                <button type="button" data-calendar-shift="1" aria-label="Mes siguiente" class="btn-icon-outline h-9 w-9">
+                                    <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 18 6-6-6-6"/>
+                                    </svg>
+                                </button>
+                                <button type="button" data-calendar-today class="btn-primary h-9 px-4 py-0 text-[10px]">Hoy</button>
+                            </div>
                         </div>
-                        <div class="mb-2 grid grid-cols-7 text-center text-[10px] font-bold uppercase text-slate-400" aria-hidden="true">
-                            <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+                        <div class="mb-1 grid grid-cols-7 text-center text-[11px] font-bold text-gris" aria-hidden="true">
+                            <span>D</span><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span>
                         </div>
-                        <div id="home-calendar-days" class="grid grid-cols-7 gap-y-1"></div>
+                        <div id="home-calendar-days" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
                     </div>
-                    <div id="home-calendar-tasks" class="mt-6 space-y-3"></div>
-                    <p id="home-calendar-empty" class="hidden py-8 text-center text-sm text-slate-500">No hay tareas para esta fecha.</p>
+
+                    <aside class="w-full shrink-0 rounded-2xl border-2 border-negro bg-white p-5 shadow-sm xl:w-[320px]">
+                        <h2 id="agenda-day-title" class="text-[12px] font-extrabold uppercase tracking-[0.08em] text-negro">Miércoles 25 · Noviembre · 2026</h2>
+                        <div id="home-calendar-tasks" class="mt-4 space-y-2"></div>
+                        <div id="home-calendar-empty" class="mt-4 flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-borde bg-fondo/40 px-4 text-center">
+                            <span class="h-2.5 w-2.5 rounded-full bg-proceso/60" aria-hidden="true"></span>
+                            <p class="text-xs font-medium text-gris">Sin vencimientos este día</p>
+                            <button type="button" data-open-new-task class="btn-outline px-3 py-1.5 text-[9px]">Agregar una tarea</button>
+                        </div>
+                    </aside>
                 </div>
             </section>
         </div>
-

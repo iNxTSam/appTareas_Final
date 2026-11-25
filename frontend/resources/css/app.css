@@ -9,17 +9,23 @@
     --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-fondo: #FFFBFA;
-    --color-primario: #8e2f42;
-    --color-primario-oscuro: #6e2230;
+    --color-fondo: #F7EFEF;
+    --color-primario: #702632;
+    --color-primario-oscuro: #912740;
     --color-primario-suave: #F6D9E0;
     --color-badgeGold: #E4B33D;
-    --color-gris: #3e3e4a;
-    --color-negro: #050505;
-    --color-input: #f4f1f1;
-    --color-tab-iniciado: #F5E0E4;
-    --color-tab-proceso: #F7ECCD;
+    --color-gris: #40434E;
+    --color-negro: #080705;
+    --color-input: #F1EBEA;
+    --color-superficie: #FFFFFF;
+    --color-borde: #E7DADD;
+    --color-tab-iniciado: #D8EEEA;
+    --color-tab-proceso: #FBF3DF;
     --color-tab-terminado: #DDEFE4;
+    --color-exito: #2E9E63;
+    --color-proceso: #1FA08E;
+    --color-aviso: #E4B33D;
+    --color-peligro: #C03434;
 }
 
 @layer base {
@@ -27,67 +33,84 @@
         background-color: var(--color-fondo);
         color: var(--color-negro);
         font-family: var(--font-sans);
-        font-weight: 400;
+        font-weight: 500;
         -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
     }
 
     h1 {
-        font-size: 48px;
-        font-weight: 700;
-        line-height: 1.1;
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
     }
 
     h2 {
-        font-size: 36px;
-        font-weight: 500;
-        line-height: 1.15;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.2;
     }
 
     h3 {
-        font-size: 32px;
-        font-weight: 400;
-    }
-
-    h4 {
-        font-size: 24px;
-        font-weight: 400;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.25;
     }
 
     p {
-        font-size: 16px;
+        font-size: 14px;
+        line-height: 1.55;
     }
 }
 
 @layer components {
     .btn-primary {
-        @apply inline-flex items-center justify-center gap-2 rounded-full bg-primario px-5 py-3 text-sm font-semibold text-white transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex items-center justify-center gap-2 rounded-full bg-primario px-5 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-white transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 focus:ring-offset-2 focus:ring-offset-fondo disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-outline {
-        @apply inline-flex items-center justify-center gap-2 rounded-full border border-primario/30 bg-white px-5 py-3 text-sm font-semibold text-primario transition hover:border-primario hover:bg-primario-suave/40 focus:outline-none focus:ring-2 focus:ring-primario/30 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex items-center justify-center gap-2 rounded-full border border-primario bg-white px-5 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-primario transition hover:bg-primario-suave/40 focus:outline-none focus:ring-2 focus:ring-primario/30 focus:ring-offset-2 focus:ring-offset-fondo disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-ghost {
-        @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-gris transition hover:bg-primario-suave/50 hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex items-center justify-center gap-2 rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.08em] text-gris transition hover:bg-primario-suave/50 hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-icon-fill {
-        @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primario text-base text-white shadow-sm transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primario text-base text-white shadow-sm transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/40 focus:ring-offset-2 focus:ring-offset-fondo disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-icon-outline {
-        @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gris/20 bg-white text-gris transition hover:border-primario/40 hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-primario/40 bg-white text-gris transition hover:border-primario hover:text-primario focus:outline-none focus:ring-2 focus:ring-primario/20 disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-danger {
-        @apply inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 transition hover:border-red-400 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-5 py-3 text-xs font-extrabold uppercase tracking-[0.12em] text-red-700 transition hover:border-red-400 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .field-label {
-        @apply mb-1.5 block text-sm font-bold text-negro;
+        @apply mb-1.5 block text-[10px] font-extrabold uppercase tracking-[0.12em] text-gris;
     }
 
     .field-input {
-        @apply w-full rounded-2xl border border-gris/20 bg-fondo px-4 py-2.5 text-sm text-negro outline-none transition focus:border-primario focus:ring-2 focus:ring-primario/20;
+        @apply w-full rounded-full border border-transparent bg-input px-4 py-3 text-sm font-medium text-negro outline-none transition placeholder:text-gris/60 focus:border-primario focus:ring-2 focus:ring-primario/20;
+    }
+
+    .card-maroon {
+        @apply rounded-[20px] bg-primario text-white shadow-[0_10px_24px_rgba(78,27,35,0.18)];
+    }
+
+    .pill-date {
+        @apply rounded-xl bg-[#FFFAFA] px-3 py-2 text-[13px] font-extrabold uppercase tracking-wide text-negro;
+    }
+}
+
+@layer utilities {
+    .carousel-mask {
+        mask-image: linear-gradient(to right, transparent 0, #000 3%, #000 97%, transparent 100%);
+    }
+
+    .numeric {
+        font-variant-numeric: tabular-nums;
     }
 }

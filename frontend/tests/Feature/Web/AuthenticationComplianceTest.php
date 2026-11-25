@@ -248,7 +248,7 @@ class AuthenticationComplianceTest extends TestCase
             ->assertOk()
             ->assertSee('name="email"', false)
             ->assertSee('name="password"', false)
-            ->assertSee('Ingresar');
+            ->assertSee('Iniciar sesión');
     }
 
     public function test_cp13_panel_sin_sesion_redirige_al_login(): void

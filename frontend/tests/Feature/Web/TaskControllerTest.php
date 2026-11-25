@@ -338,7 +338,7 @@ class TaskControllerTest extends TestCase
             ->assertSee('id="task-app"', false)
             ->assertSee('data-tasks-url="'.route('tasks.index').'"', false)
             ->assertSee(route('tasks.show', ['task' => '__task__']), false)
-            ->assertSee('Vista de tablero')
+            ->assertSee('Vista de tarjetas')
             ->assertSee('name="priority"', false)
             ->assertSee('name="team_id"', false)
             ->assertSee('name="project_id"', false)
