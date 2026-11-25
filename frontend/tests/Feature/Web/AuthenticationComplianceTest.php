@@ -248,7 +248,7 @@ class AuthenticationComplianceTest extends TestCase
             ->assertOk()
             ->assertSee('name="email"', false)
             ->assertSee('name="password"', false)
-            ->assertSee('Ingresar');
+            ->assertSee('Iniciar sesión');
     }
 
     public function test_cp13_panel_sin_sesion_redirige_al_login(): void
@@ -265,6 +265,9 @@ class AuthenticationComplianceTest extends TestCase
             'http://backend.test/api/me' => Http::response([
                 'user' => $this->sessionUser(),
             ], 200),
+            'http://backend.test/api/teams' => Http::response(['data' => []]),
+            'http://backend.test/api/projects' => Http::response(['data' => []]),
+            'http://backend.test/api/accounts' => Http::response(['data' => []]),
         ]);
 
         $response = $this->withSession([
@@ -330,6 +333,9 @@ class AuthenticationComplianceTest extends TestCase
             'http://backend.test/api/me' => Http::response([
                 'user' => $this->sessionUser(),
             ], 200),
+            'http://backend.test/api/teams' => Http::response(['data' => []]),
+            'http://backend.test/api/projects' => Http::response(['data' => []]),
+            'http://backend.test/api/accounts' => Http::response(['data' => []]),
         ]);
 
         $this->withSession([

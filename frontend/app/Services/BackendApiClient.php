@@ -45,6 +45,21 @@ class BackendApiClient
         return $this->client()->withToken($token)->get('/api/tasks', $filters);
     }
 
+    public function teams(string $token): Response
+    {
+        return $this->client()->withToken($token)->get('/api/teams');
+    }
+
+    public function projects(string $token): Response
+    {
+        return $this->client()->withToken($token)->get('/api/projects');
+    }
+
+    public function accounts(string $token): Response
+    {
+        return $this->client()->withToken($token)->get('/api/accounts');
+    }
+
     public function createTask(string $token, array $data): Response
     {
         return $this->client()->withToken($token)->post('/api/tasks', $data);

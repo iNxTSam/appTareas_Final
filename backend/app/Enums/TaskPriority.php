@@ -4,14 +4,16 @@ namespace App\Enums;
 
 enum TaskPriority: string
 {
-    case Normal = 'normal';
-    case Important = 'importante';
+    case Baja = 'baja';
+    case Media = 'media';
+    case Alta = 'alta';
 
     public function label(): string
     {
         return match ($this) {
-            self::Normal => 'Normal',
-            self::Important => 'Importante',
+            self::Baja => 'Baja',
+            self::Media => 'Media',
+            self::Alta => 'Alta',
         };
     }
 

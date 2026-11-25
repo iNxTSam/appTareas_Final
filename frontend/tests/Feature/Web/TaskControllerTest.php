@@ -39,20 +39,30 @@ class TaskControllerTest extends TestCase
     {
         return [
             'id' => 42,
-            'name' => 'Preparar el tablero',
+            'title' => 'Preparar el tablero',
             'description' => 'Tareas de la semana',
-            'category' => 'Diseño',
-            'start_date' => '2026-11-15',
-            'end_date' => '2026-11-20',
+            'team' => ['id' => 7, 'name' => 'Producto'],
+            'project' => ['id' => 9, 'name' => 'Diseño', 'color' => '#702632'],
             'status' => 'en_progreso',
             'status_label' => 'En progreso',
-            'priority' => 'importante',
-            'priority_label' => 'Importante',
-            'team' => 'Producto',
-            'responsible_id' => 'ana',
-            'responsible_name' => 'Ana Torres',
+            'priority' => 'alta',
+            'priority_label' => 'Alta',
+            'start_date' => '2026-11-15',
+            'end_date' => '2026-11-20',
+            'completed_at' => null,
+            'position' => 0,
+            'created_by' => ['id' => 1, 'name' => 'Ana Torres'],
+            'assignees' => [
+                ['id' => 3, 'name' => 'Ana Torres'],
+            ],
             'subtasks' => [
-                ['text' => 'Revisar entregables', 'done' => false],
+                [
+                    'id' => 5,
+                    'title' => 'Revisar entregables',
+                    'is_done' => false,
+                    'position' => 1,
+                    'assignee' => null,
+                ],
             ],
             'created_at' => '2026-11-15T10:00:00+00:00',
             'updated_at' => '2026-11-15T10:00:00+00:00',
@@ -69,15 +79,26 @@ class TaskControllerTest extends TestCase
             'title' => 'Preparar el tablero',
             'description' => 'Tareas de la semana',
             'category' => 'Diseño',
+            'project_id' => 9,
             'status' => 'en_progreso',
             'status_label' => 'En progreso',
             'priority' => 'high',
-            'priority_label' => 'Importante',
+            'priority_label' => 'Alta',
             'team' => 'Producto',
-            'responsible_id' => 'ana',
+            'team_id' => 7,
+            'responsible_id' => 3,
             'responsible_name' => 'Ana Torres',
+            'assignees' => [
+                ['id' => 3, 'name' => 'Ana Torres'],
+            ],
             'subtasks' => [
-                ['text' => 'Revisar entregables', 'done' => false],
+                [
+                    'id' => 5,
+                    'text' => 'Revisar entregables',
+                    'done' => false,
+                    'responsible_id' => '',
+                    'responsible_name' => '',
+                ],
             ],
             'start_date' => '2026-11-15',
             'due_date' => '2026-11-20',
@@ -105,7 +126,7 @@ class TaskControllerTest extends TestCase
         Http::assertSent(fn ($request) => $request->method() === 'GET'
             && str_starts_with($request->url(), 'http://backend.test/api/tasks?')
             && str_contains($request->url(), 'status=pendiente')
-            && str_contains($request->url(), 'priority=importante')
+            && str_contains($request->url(), 'priority=alta')
             && $request->hasHeader('Authorization', 'Bearer test-token'));
     }
 
@@ -131,16 +152,15 @@ class TaskControllerTest extends TestCase
             ->postJson(route('tasks.store'), [
                 'title' => 'Preparar el tablero',
                 'description' => 'Tareas de la semana',
-                'category' => 'Diseño',
+                'team_id' => 7,
+                'project_id' => 9,
                 'status' => 'en_progreso',
                 'priority' => 'high',
-                'team' => 'Producto',
                 'start_date' => '2026-11-15',
                 'due_date' => '2026-11-20',
-                'responsible_id' => 'ana',
-                'responsible_name' => 'Ana Torres',
+                'responsible_id' => '3',
                 'subtasks' => [
-                    ['text' => 'Revisar entregables', 'done' => false],
+                    ['title' => 'Revisar entregables', 'is_done' => false],
                 ],
             ])
             ->assertCreated()
@@ -149,18 +169,17 @@ class TaskControllerTest extends TestCase
         Http::assertSent(fn ($request) => $request->method() === 'POST'
             && $request->url() === 'http://backend.test/api/tasks'
             && $request->data() === [
-                'name' => 'Preparar el tablero',
+                'title' => 'Preparar el tablero',
                 'description' => 'Tareas de la semana',
-                'category' => 'Diseño',
+                'team_id' => 7,
+                'project_id' => 9,
                 'start_date' => '2026-11-15',
                 'end_date' => '2026-11-20',
                 'status' => 'en_progreso',
-                'priority' => 'importante',
-                'team' => 'Producto',
-                'responsible_id' => 'ana',
-                'responsible_name' => 'Ana Torres',
+                'priority' => 'alta',
+                'assignee_ids' => [3],
                 'subtasks' => [
-                    ['text' => 'Revisar entregables', 'done' => false],
+                    ['title' => 'Revisar entregables', 'is_done' => false],
                 ],
             ]
             && $request->hasHeader('Authorization', 'Bearer test-token'));
@@ -184,7 +203,9 @@ class TaskControllerTest extends TestCase
         Http::assertSent(fn ($request) => $request->method() === 'POST'
             && $request->data()['start_date'] === '2026-11-20'
             && $request->data()['end_date'] === '2026-11-20'
-            && $request->data()['priority'] === 'normal');
+            && $request->data()['priority'] === 'media'
+            && $request->data()['team_id'] === null
+            && $request->data()['assignee_ids'] === []);
     }
 
     public function test_task_creation_defaults_missing_dates_to_today(): void
@@ -206,7 +227,7 @@ class TaskControllerTest extends TestCase
         Http::assertSent(fn ($request) => $request->method() === 'POST'
             && $request->data()['start_date'] === '2026-11-15'
             && $request->data()['end_date'] === '2026-11-15'
-            && $request->data()['priority'] === 'normal');
+            && $request->data()['priority'] === 'baja');
     }
 
     public function test_task_detail_is_fetched_with_the_session_token(): void
@@ -239,7 +260,7 @@ class TaskControllerTest extends TestCase
                 'description' => 'Tareas de la semana',
                 'status' => 'en_progreso',
                 'priority' => 'high',
-                'team' => 'Producto',
+                'team_id' => 7,
                 'start_date' => '2026-11-15',
                 'due_date' => '2026-11-20',
             ])
@@ -252,7 +273,7 @@ class TaskControllerTest extends TestCase
 
         Http::assertSent(fn ($request) => $request->method() === 'PUT'
             && $request->url() === 'http://backend.test/api/tasks/42'
-            && $request->data()['name'] === 'Preparar el tablero'
+            && $request->data()['title'] === 'Preparar el tablero'
             && $request->data()['end_date'] === '2026-11-20'
             && $request->hasHeader('Authorization', 'Bearer test-token'));
         Http::assertSent(fn ($request) => $request->method() === 'DELETE'
@@ -268,6 +289,43 @@ class TaskControllerTest extends TestCase
             ->getJson(route('tasks.index'))
             ->assertServiceUnavailable()
             ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
+    }
+
+    public function test_task_detail_connection_failure_returns_a_visible_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession($this->sessionData())
+            ->getJson(route('tasks.show', ['task' => 42]))
+            ->assertServiceUnavailable()
+            ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
+    }
+
+    public function test_task_delete_connection_failure_returns_a_visible_error(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('Backend no disponible.'));
+
+        $this->withSession($this->sessionData())
+            ->deleteJson(route('tasks.destroy', ['task' => 42]))
+            ->assertServiceUnavailable()
+            ->assertJsonPath('message', 'No se pudo conectar con el servidor de tareas.');
+    }
+
+    public function test_panel_remains_usable_when_selector_endpoints_fail(): void
+    {
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), '/api/me')) {
+                return Http::response(['user' => $this->sessionData()['api_user']]);
+            }
+
+            throw new ConnectionException('Selectores no disponibles.');
+        });
+
+        $this->withSession($this->sessionData())
+            ->get(route('panel'))
+            ->assertOk()
+            ->assertSee('Ana Torres')
+            ->assertSee('name="team_id"', false);
     }
 
     public function test_invalid_task_values_are_rejected_before_calling_the_api(): void
@@ -300,6 +358,15 @@ class TaskControllerTest extends TestCase
             'http://backend.test/api/me' => Http::response([
                 'user' => $this->sessionData()['api_user'],
             ]),
+            'http://backend.test/api/teams' => Http::response([
+                'data' => [['id' => 7, 'name' => 'Producto', 'role' => 'owner', 'members_count' => 3]],
+            ]),
+            'http://backend.test/api/projects' => Http::response([
+                'data' => [['id' => 9, 'team_id' => 7, 'name' => 'Diseño', 'color' => '#702632']],
+            ]),
+            'http://backend.test/api/accounts' => Http::response([
+                'data' => [['id' => 3, 'name' => 'Ana Torres', 'email' => 'ana@test.local']],
+            ]),
         ]);
 
         $this->withSession($this->sessionData())
@@ -308,9 +375,10 @@ class TaskControllerTest extends TestCase
             ->assertSee('id="task-app"', false)
             ->assertSee('data-tasks-url="'.route('tasks.index').'"', false)
             ->assertSee(route('tasks.show', ['task' => '__task__']), false)
-            ->assertSee('Vista de tablero')
+            ->assertSee('Vista de tarjetas')
             ->assertSee('name="priority"', false)
-            ->assertSee('name="team"', false)
+            ->assertSee('name="team_id"', false)
+            ->assertSee('name="project_id"', false)
             ->assertSee('en_progreso');
     }
 }

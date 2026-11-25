@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Models\User;
+use App\Models\Account;
 use App\Notifications\ResetPasswordNotification;
 use Tests\TestCase;
 
@@ -12,7 +12,7 @@ class ResetPasswordNotificationTest extends TestCase
     {
         config(['app.frontend_url' => 'http://frontend.test']);
 
-        $user = new User([
+        $user = new Account([
             'name' => 'Ana Torres',
             'email' => 'ana@test.local',
         ]);

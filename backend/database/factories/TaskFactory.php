@@ -4,8 +4,10 @@ namespace Database\Factories;
 
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Models\Account;
+use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
+use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -20,20 +22,28 @@ class TaskFactory extends Factory
     {
         $start = fake()->dateTimeBetween('-1 month', '+1 month');
         $end = fake()->dateTimeBetween($start, '+2 months');
+        $status = fake()->randomElement(TaskStatus::cases());
 
         return [
-            'user_id' => User::factory(),
-            'name' => fake()->sentence(4),
+            'team_id' => null,
+            'project_id' => null,
+            'created_by' => Account::factory(),
+            'title' => fake()->sentence(4),
             'description' => fake()->optional()->paragraph(),
-            'category' => fake()->optional()->word(),
+            'status' => $status,
+            'priority' => fake()->randomElement(TaskPriority::cases()),
             'start_date' => $start->format('Y-m-d'),
             'end_date' => $end->format('Y-m-d'),
-            'status' => fake()->randomElement(TaskStatus::cases()),
-            'priority' => TaskPriority::Normal,
-            'team' => fake()->optional()->word(),
-            'responsible_id' => null,
-            'responsible_name' => fake()->optional()->name(),
-            'subtasks' => [],
+            'completed_at' => $status->value === 'completada' ? now() : null,
+            'position' => 0,
         ];
+    }
+
+    public function forTeam(Team $team, ?Project $project = null): static
+    {
+        return $this->state(fn (): array => [
+            'team_id' => $team->team_id,
+            'project_id' => $project?->project_id,
+        ]);
     }
 }

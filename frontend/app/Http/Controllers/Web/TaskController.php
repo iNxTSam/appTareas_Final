@@ -21,17 +21,18 @@ class TaskController extends Controller
      * @var array<string, string>
      */
     private const API_PRIORITIES = [
-        'low' => 'normal',
-        'medium' => 'normal',
-        'high' => 'importante',
+        'low' => 'baja',
+        'medium' => 'media',
+        'high' => 'alta',
     ];
 
     /**
      * @var array<string, string>
      */
     private const UI_PRIORITIES = [
-        'normal' => 'medium',
-        'importante' => 'high',
+        'baja' => 'low',
+        'media' => 'medium',
+        'alta' => 'high',
     ];
 
     public function __construct(private BackendApiClient $api) {}
@@ -101,19 +102,17 @@ class TaskController extends Controller
         return [
             'title' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'category' => ['nullable', 'string', 'max:80'],
+            'team_id' => ['nullable', 'integer', 'min:1'],
+            'project_id' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', Rule::in(self::STATUSES)],
             'priority' => ['required', Rule::in(self::PRIORITIES)],
-            'team' => ['nullable', 'string', 'max:60'],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
             'responsible_id' => ['nullable', 'string', 'max:120'],
-            'responsible_name' => ['nullable', 'string', 'max:120'],
             'subtasks' => ['sometimes', 'array'],
-            'subtasks.*.text' => ['required', 'string', 'max:160'],
-            'subtasks.*.done' => ['required', 'boolean'],
+            'subtasks.*.title' => ['required', 'string', 'max:160'],
+            'subtasks.*.is_done' => ['required', 'boolean'],
             'subtasks.*.responsible_id' => ['nullable', 'string', 'max:120'],
-            'subtasks.*.responsible_name' => ['nullable', 'string', 'max:120'],
         ];
     }
 
@@ -144,19 +143,23 @@ class TaskController extends Controller
     {
         $startDate = $data['start_date'] ?? $data['due_date'] ?? now()->toDateString();
         $endDate = $data['due_date'] ?? $startDate;
+        $responsibleId = (string) ($data['responsible_id'] ?? '');
+        $subtasks = array_map(static fn (array $subtask): array => [
+            'title' => $subtask['title'],
+            'is_done' => (bool) $subtask['is_done'],
+        ], $data['subtasks'] ?? []);
 
         return [
-            'name' => $data['title'],
+            'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'category' => $data['category'] ?? null,
+            'team_id' => isset($data['team_id']) ? (int) $data['team_id'] : null,
+            'project_id' => isset($data['project_id']) ? (int) $data['project_id'] : null,
             'start_date' => Carbon::parse((string) $startDate)->toDateString(),
             'end_date' => Carbon::parse((string) $endDate)->toDateString(),
             'status' => $data['status'],
             'priority' => self::API_PRIORITIES[$data['priority']],
-            'team' => $data['team'] ?? null,
-            'responsible_id' => $data['responsible_id'] ?? null,
-            'responsible_name' => $data['responsible_name'] ?? null,
-            'subtasks' => $data['subtasks'] ?? [],
+            'assignee_ids' => ctype_digit($responsibleId) ? [(int) $responsibleId] : [],
+            'subtasks' => $subtasks,
         ];
     }
 
@@ -166,21 +169,32 @@ class TaskController extends Controller
      */
     private function fromApiTask(array $task): array
     {
-        $priority = (string) ($task['priority'] ?? 'normal');
+        $priority = (string) ($task['priority'] ?? 'media');
+        $assignees = is_array($task['assignees'] ?? null) ? $task['assignees'] : [];
+        $firstAssignee = $assignees[0] ?? null;
 
         return [
             'id' => $task['id'] ?? null,
-            'title' => $task['name'] ?? '',
+            'title' => $task['title'] ?? '',
             'description' => $task['description'] ?? '',
-            'category' => $task['category'] ?? '',
+            'category' => $task['project']['name'] ?? 'GENERAL',
+            'project_id' => $task['project']['id'] ?? null,
             'status' => $task['status'] ?? 'pendiente',
             'status_label' => $task['status_label'] ?? null,
             'priority' => self::UI_PRIORITIES[$priority] ?? 'medium',
             'priority_label' => $task['priority_label'] ?? null,
-            'team' => $task['team'] ?? '',
-            'responsible_id' => $task['responsible_id'] ?? '',
-            'responsible_name' => $task['responsible_name'] ?? '',
-            'subtasks' => $task['subtasks'] ?? [],
+            'team' => $task['team']['name'] ?? '',
+            'team_id' => $task['team']['id'] ?? null,
+            'responsible_id' => $firstAssignee['id'] ?? '',
+            'responsible_name' => $firstAssignee['name'] ?? '',
+            'assignees' => $assignees,
+            'subtasks' => array_map(static fn (array $subtask): array => [
+                'id' => $subtask['id'] ?? null,
+                'text' => $subtask['title'] ?? '',
+                'done' => (bool) ($subtask['is_done'] ?? false),
+                'responsible_id' => $subtask['assignee']['id'] ?? '',
+                'responsible_name' => $subtask['assignee']['name'] ?? '',
+            ], is_array($task['subtasks'] ?? null) ? $task['subtasks'] : []),
             'start_date' => $task['start_date'] ?? null,
             'due_date' => $task['end_date'] ?? null,
             'created_at' => $task['created_at'] ?? null,

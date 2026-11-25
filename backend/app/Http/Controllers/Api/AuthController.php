@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,7 +23,7 @@ class AuthController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email:filter', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'email:filter', 'max:255', 'unique:account,email'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ], [
             'name.required' => 'El nombre es obligatorio.',
@@ -37,7 +37,7 @@ class AuthController extends Controller
             'password.numbers' => 'La contraseña debe incluir al menos un número.',
         ]);
 
-        $user = User::create([
+        $account = Account::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
@@ -45,8 +45,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Cuenta creada correctamente.',
-            'user' => $user,
-            'token' => $user->createToken('api')->plainTextToken,
+            'user' => $account,
+            'token' => $account->createToken('api')->plainTextToken,
             'token_type' => 'Bearer',
         ], 201);
     }
@@ -78,9 +78,9 @@ class AuthController extends Controller
             ], 429)->header('Retry-After', (string) $seconds);
         }
 
-        $user = User::where('email', $email)->first();
+        $account = Account::where('email', $email)->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $account || ! Hash::check($credentials['password'], $account->password)) {
             RateLimiter::hit($key, 900);
 
             throw ValidationException::withMessages([
@@ -92,8 +92,8 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Inicio de sesión correcto.',
-            'user' => $user,
-            'token' => $user->createToken('api')->plainTextToken,
+            'user' => $account,
+            'token' => $account->createToken('api')->plainTextToken,
             'token_type' => 'Bearer',
         ]);
     }

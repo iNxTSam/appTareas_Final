@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TeamController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->name('api.register');
@@ -13,6 +16,10 @@ Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name(
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me'])->name('api.me');
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.logout');
+
+    Route::get('/teams', [TeamController::class, 'index'])->name('api.teams.index');
+    Route::get('/projects', [ProjectController::class, 'index'])->name('api.projects.index');
+    Route::get('/accounts', [AccountController::class, 'index'])->name('api.accounts.index');
 
     Route::get('/tasks', [TaskController::class, 'index'])->name('api.tasks.index');
     Route::post('/tasks', [TaskController::class, 'store'])->name('api.tasks.store');

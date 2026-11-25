@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\User;
+use App\Models\Account;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -14,9 +14,9 @@ class PasswordResetApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createUser(): User
+    private function createAccount(): Account
     {
-        return User::create([
+        return Account::create([
             'name' => 'Ana Torres',
             'email' => 'ana@test.local',
             'password' => 'Abcd1234',
@@ -37,7 +37,7 @@ class PasswordResetApiTest extends TestCase
     public function test_forgot_password_mensaje_generico_correo_registrado(): void
     {
         Notification::fake();
-        $user = $this->createUser();
+        $user = $this->createAccount();
 
         $this->postJson('/api/forgot-password', ['email' => 'ana@test.local'])
             ->assertOk()
@@ -49,7 +49,7 @@ class PasswordResetApiTest extends TestCase
     public function test_forgot_password_envia_enlace_token_seguro_un_solo_uso(): void
     {
         Notification::fake();
-        $user = $this->createUser();
+        $user = $this->createAccount();
 
         $this->postJson('/api/forgot-password', ['email' => 'ana@test.local'])->assertOk();
 
@@ -70,7 +70,7 @@ class PasswordResetApiTest extends TestCase
 
     public function test_reset_password_rechaza_token_expirado(): void
     {
-        $user = $this->createUser();
+        $user = $this->createAccount();
         $token = Password::createToken($user);
 
         $this->travel(31)->minutes();
@@ -86,7 +86,7 @@ class PasswordResetApiTest extends TestCase
 
     public function test_reset_password_rechaza_password_debil(): void
     {
-        $user = $this->createUser();
+        $user = $this->createAccount();
         $token = Password::createToken($user);
 
         $this->postJson('/api/reset-password', [
@@ -100,7 +100,7 @@ class PasswordResetApiTest extends TestCase
 
     public function test_reset_password_invalida_token_tras_el_cambio(): void
     {
-        $user = $this->createUser();
+        $user = $this->createAccount();
         $token = Password::createToken($user);
 
         $this->postJson('/api/reset-password', [
@@ -125,7 +125,7 @@ class PasswordResetApiTest extends TestCase
 
     public function test_password_anterior_deja_de_funcionar(): void
     {
-        $user = $this->createUser();
+        $user = $this->createAccount();
         $token = Password::createToken($user);
 
         $this->postJson('/api/reset-password', [

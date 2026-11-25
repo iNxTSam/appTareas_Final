@@ -1,0 +1,85 @@
+erDiagram
+    ACCOUNT ||--o{ TEAM_MEMBER : "pertenece"
+    TEAM ||--o{ TEAM_MEMBER : "tiene"
+    TEAM ||--o{ PROJECT : "agrupa"
+    TEAM |o--o{ TASK : "posee"
+    PROJECT |o--o{ TASK : "contiene"
+    ACCOUNT ||--o{ TASK : "crea"
+    ACCOUNT ||--o{ TASK_ASSIGNEE : "recibe"
+    TASK ||--o{ TASK_ASSIGNEE : "asigna"
+    TASK ||--o{ SUBTASK : "desglosa"
+    ACCOUNT |o--o{ SUBTASK : "responsable"
+
+    ACCOUNT {
+        bigint account_id PK
+        varchar name
+        varchar email UK
+        varchar password
+        varchar avatar_url
+        varchar timezone
+        timestamptz email_verified_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TEAM {
+        bigint team_id PK
+        varchar name
+        varchar slug UK
+        bigint owner_id FK "account.account_id"
+        timestamptz archived_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TEAM_MEMBER {
+        bigint team_id PK "FK team.team_id"
+        bigint account_id PK "FK account.account_id"
+        varchar role "owner / admin / member"
+        timestamptz joined_at
+    }
+
+    PROJECT {
+        bigint project_id PK
+        bigint team_id FK "team.team_id"
+        varchar name
+        varchar color
+        timestamptz archived_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TASK {
+        bigint task_id PK
+        bigint team_id FK "team.team_id (opcional)"
+        bigint project_id FK "project.project_id (opcional)"
+        bigint created_by FK "account.account_id"
+        varchar title
+        text description
+        varchar status "pendiente / en_progreso / completada"
+        varchar priority "baja / media / alta"
+        date start_date
+        date end_date
+        timestamptz completed_at
+        integer position
+        timestamptz deleted_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TASK_ASSIGNEE {
+        bigint task_id PK "FK task.task_id"
+        bigint account_id PK "FK account.account_id"
+        timestamptz assigned_at
+    }
+
+    SUBTASK {
+        bigint subtask_id PK
+        bigint task_id FK "task.task_id"
+        varchar title
+        boolean is_done
+        integer position
+        bigint assignee_id FK "account.account_id (opcional)"
+        timestamptz created_at
+        timestamptz updated_at
+    }

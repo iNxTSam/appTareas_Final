@@ -3,13 +3,10 @@
 @php
     $displayName = $apiUser['name'] ?? 'Usuario';
     $email = $apiUser['email'] ?? '';
-    $responsibles = [
-        ['id' => 'nicolas', 'name' => 'Nicolas'],
-        ['id' => 'daniel', 'name' => 'Daniel'],
-        ['id' => 'samuel', 'name' => 'Samuel'],
-        ['id' => 'feipe', 'name' => 'Feipe'],
-        ['id' => 'jse', 'name' => 'Jse'],
-    ];
+    $responsibles = $accounts ?? [];
+    $teamOptions = $teams ?? [];
+    $projectOptions = $projects ?? [];
+    $firstName = trim(explode(' ', $displayName)[0] ?? $displayName);
 @endphp
 
 @section('title', 'AppTareas')
@@ -50,5 +47,14 @@
         </div>
 
         @include('panel.partials.dialogs')
+
+        <button
+            type="button"
+            data-open-new-task
+            aria-label="Agregar una tarea"
+            class="fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primario text-3xl font-light leading-none text-white shadow-[0_12px_26px_rgba(78,27,35,0.35)] transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/50 focus:ring-offset-2 focus:ring-offset-fondo sm:bottom-8 sm:right-8"
+        >
+            +
+        </button>
     </div>
 @endsection

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Account;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -56,7 +56,7 @@ class PasswordResetController extends Controller
             'password.numbers' => 'La contraseña debe incluir al menos un número.',
         ]);
 
-        $status = Password::reset($data, function (User $user, string $password): void {
+        $status = Password::reset($data, function (Account $user, string $password): void {
             $user->forceFill([
                 'password' => $password,
                 'remember_token' => Str::random(60),
