@@ -11,7 +11,9 @@
                         aria-label="Cerrar formulario"
                         class="btn-icon-outline h-9 w-9 text-lg leading-none"
                     >
-                        ×
+                        <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
+                        </svg>
                     </button>
                 </header>
 
@@ -134,7 +136,9 @@
                         aria-label="Cerrar información de tarea"
                         class="btn-icon-fill absolute right-3 top-3 h-8 w-8 text-lg leading-none"
                     >
-                        ×
+                        <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"/>
+                        </svg>
                     </button>
                     <div class="px-5 pb-4 pt-5 sm:px-6">
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 pr-10">

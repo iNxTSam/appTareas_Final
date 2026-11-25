@@ -151,7 +151,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="relative mt-4 text-center text-xs font-medium text-gris/70">Una vista previa de tu espacio de trabajo</p>
+                    <p class="relative mt-4 text-center text-xs font-medium text-gris">Una vista previa de tu espacio de trabajo</p>
                 </div>
             </section>
 
@@ -165,21 +165,21 @@
 
                     <div class="mt-10 grid gap-4 md:grid-cols-3">
                         <a href="{{ route('register') }}" class="group rounded-3xl border border-gris/10 bg-white p-6 transition hover:-translate-y-1 hover:border-primario/20 hover:shadow-xl hover:shadow-primario/5 focus:outline-none focus:ring-2 focus:ring-primario/40">
-                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario/60">01</span>
+                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario">01</span>
                             <h3 class="mt-4 text-xl font-extrabold text-negro group-hover:text-primario">Crea tu cuenta</h3>
                             <p class="mt-2 leading-6 text-gris">Regístrate para entrar a tu espacio personal.</p>
                             <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-primario">Registrarme <span aria-hidden="true">→</span></span>
                         </a>
 
                         <a href="{{ route('login') }}" class="group rounded-3xl border border-gris/10 bg-white p-6 transition hover:-translate-y-1 hover:border-primario/20 hover:shadow-xl hover:shadow-primario/5 focus:outline-none focus:ring-2 focus:ring-primario/40">
-                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario/60">02</span>
+                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario">02</span>
                             <h3 class="mt-4 text-xl font-extrabold text-negro group-hover:text-primario">Inicia sesión</h3>
                             <p class="mt-2 leading-6 text-gris">Vuelve a tu cuenta de forma segura cuando quieras.</p>
                             <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-primario">Entrar <span aria-hidden="true">→</span></span>
                         </a>
 
                         <a href="{{ route('password.recovery') }}" class="group rounded-3xl border border-gris/10 bg-white p-6 transition hover:-translate-y-1 hover:border-primario/20 hover:shadow-xl hover:shadow-primario/5 focus:outline-none focus:ring-2 focus:ring-primario/40">
-                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario/60">03</span>
+                            <span class="text-sm font-extrabold tracking-[0.15em] text-primario">03</span>
                             <h3 class="mt-4 text-xl font-extrabold text-negro group-hover:text-primario">Recupera el acceso</h3>
                             <p class="mt-2 leading-6 text-gris">Solicita un enlace si olvidaste tu contraseña.</p>
                             <span class="mt-5 inline-flex items-center gap-2 text-sm font-bold text-primario">Recuperar cuenta <span aria-hidden="true">→</span></span>

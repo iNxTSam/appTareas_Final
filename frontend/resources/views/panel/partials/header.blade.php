@@ -2,7 +2,6 @@
             <button
                 type="button"
                 data-open-profile
-                aria-label="Abrir opciones de cuenta y sesión"
                 class="flex min-w-0 flex-1 items-center gap-2 rounded-2xl border border-primario/15 bg-white px-2.5 py-2 text-left shadow-sm transition hover:border-primario/40 focus:outline-none focus:ring-2 focus:ring-primario/40 sm:flex-none sm:gap-3 sm:px-3"
             >
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primario-suave text-primario">
@@ -24,15 +23,14 @@
                         type="button"
                         data-open-active-task
                         class="btn-ghost hidden min-h-0 max-w-24 truncate rounded-full px-0 py-0 text-[9px] text-gris sm:inline-flex sm:max-w-36 sm:text-[10px]"
-                        aria-label="Ver tarea activa"
                     >
                         SIN TAREA ACTIVA
                     </button>
                     <div class="flex shrink-0 items-center gap-0.5 font-sans text-[10px] font-extrabold text-negro sm:gap-1 sm:text-xs" role="timer" aria-label="Tiempo restante" aria-live="off">
-                        <span id="timer-days">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">D</span>:
-                        <span id="timer-hours">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">H</span>:
-                        <span id="timer-minutes">00</span><span class="mr-0.5 text-[8px] font-sans text-slate-500 sm:text-[9px]">M</span>:
-                        <span id="timer-seconds">00</span><span class="text-[8px] font-sans text-slate-500 sm:text-[9px]">S</span>
+                        <span id="timer-days">00</span><span class="mr-0.5 text-[8px] font-sans text-gris sm:text-[9px]">D</span>:
+                        <span id="timer-hours">00</span><span class="mr-0.5 text-[8px] font-sans text-gris sm:text-[9px]">H</span>:
+                        <span id="timer-minutes">00</span><span class="mr-0.5 text-[8px] font-sans text-gris sm:text-[9px]">M</span>:
+                        <span id="timer-seconds">00</span><span class="text-[8px] font-sans text-gris sm:text-[9px]">S</span>
                     </div>
                     <span id="timer-caption" class="sr-only"></span>
                     <button
@@ -55,7 +53,9 @@
                     aria-label="Agregar una tarea"
                     class="btn-icon-fill text-xl leading-none sm:h-11 sm:w-11"
                 >
-                    +
+                    <svg aria-hidden="true" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+                    </svg>
                 </button>
             </div>
         </header>
