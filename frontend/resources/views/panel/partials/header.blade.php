@@ -4,6 +4,7 @@
                     type="button"
                     data-nav-toggle
                     aria-label="Volver al menú principal"
+                    title="Volver al inicio"
                     class="btn-icon-outline hidden h-10 w-10 sm:h-11 sm:w-11"
                 >
                     <svg aria-hidden="true" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
