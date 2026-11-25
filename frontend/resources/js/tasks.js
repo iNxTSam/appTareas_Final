@@ -743,6 +743,17 @@ function setupTaskHeader(root) {
         }
     });
 
+    const startDateInput = taskForm.querySelector('#task-start-date');
+    const endDateInput = taskForm.querySelector('#task-date');
+    const syncDateBounds = () => {
+        endDateInput.min = startDateInput.value;
+
+        if (startDateInput.value !== '' && endDateInput.value !== '' && endDateInput.value < startDateInput.value) {
+            endDateInput.value = startDateInput.value;
+        }
+    };
+    startDateInput.addEventListener('change', syncDateBounds);
+
     const saveTasks = async (nextTasks) => {
         const added = nextTasks.filter((nextTask) => !tasks.some((task) => task.id === nextTask.id));
         const removed = tasks.filter((task) => !nextTasks.some((nextTask) => nextTask.id === task.id));
@@ -1505,7 +1516,9 @@ function setupTaskHeader(root) {
         taskFormSubtitle.textContent = taskFormSubtitleDefault;
         taskSubmitButton.textContent = 'Agregar tarea';
         clearTaskFormError();
+        taskForm.querySelector('#task-status').value = 'pendiente';
         taskForm.querySelector('#task-start-date').value = toDateString(new Date());
+        syncDateBounds();
     };
 
     const openTaskForm = (task = null) => {
@@ -1530,6 +1543,7 @@ function setupTaskHeader(root) {
             taskForm.querySelector('#task-start-date').value = task.start_date || '';
             taskForm.querySelector('#task-date').value = task.due_date || '';
             taskForm.querySelector('#task-subtasks').value = task.subtasks.map((subtask) => subtask.text).join('\n');
+            syncDateBounds();
         }
 
         newTaskDialog.showModal();
