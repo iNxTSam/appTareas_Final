@@ -923,14 +923,14 @@ function setupTaskHeader(root) {
         bar.title = `${task.title}: ${task.start_date} → ${task.due_date}. Arrastra para mover las fechas.`;
         bar.setAttribute('aria-label', `${task.title}, ${statusLabel}, del ${task.start_date} al ${task.due_date}. ${task.progress_percentage}% completado.`);
 
-        if (task.is_important && spanDays >= 4) {
+        if (task.is_important && spanDays >= 7) {
             const important = document.createElement('span');
             important.className = 'shrink-0 rounded-full bg-aviso px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] text-[#4A3507]';
             important.textContent = 'Importante';
             bar.append(important);
         }
 
-        if (spanDays >= 5) {
+        if (spanDays >= 8) {
             const status = document.createElement('span');
             status.className = `hidden shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] sm:inline ${statusText}`;
             status.textContent = statusLabel;
@@ -938,11 +938,20 @@ function setupTaskHeader(root) {
         }
 
         const title = document.createElement('span');
-        title.className = 'gantt-bar-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-[10px] font-extrabold tracking-[0.04em]';
-        title.textContent = task.title;
+        title.className = 'gantt-bar-title min-w-0 flex-1 overflow-hidden text-[10px] font-extrabold tracking-[0.04em]';
+        const track = document.createElement('span');
+        track.className = 'gantt-marquee-track';
+        const titleText = document.createElement('span');
+        titleText.textContent = task.title;
+        const titleClone = document.createElement('span');
+        titleClone.className = 'gantt-title-clone';
+        titleClone.textContent = task.title;
+        titleClone.setAttribute('aria-hidden', 'true');
+        track.append(titleText, titleClone);
+        title.append(track);
         bar.append(title);
 
-        if (spanDays >= 6) {
+        if (spanDays >= 8) {
             const counts = document.createElement('span');
             counts.className = 'hidden shrink-0 text-[9px] font-extrabold numeric sm:inline';
             counts.textContent = `${completedSubtasks}/${task.subtasks.length}`;
@@ -959,7 +968,7 @@ function setupTaskHeader(root) {
         const avatars = document.createElement('span');
         avatars.className = 'hidden shrink-0 items-center md:flex';
 
-        if (spanDays >= 8) {
+        if (spanDays >= 10) {
             (task.assignees.length > 0 ? task.assignees : task.responsible_name ? [{ id: task.responsible_id, name: task.responsible_name }] : [])
                 .slice(0, 3)
                 .forEach((person, index) => {
@@ -1062,14 +1071,16 @@ function setupTaskHeader(root) {
 
         window.requestAnimationFrame(() => {
             rowsElement.querySelectorAll('.gantt-bar-title').forEach((title) => {
-                const overflow = title.scrollWidth - title.clientWidth;
+                const track = title.querySelector('.gantt-marquee-track');
+                const text = track?.firstElementChild;
+                const overflow = text ? text.scrollWidth - title.clientWidth : 0;
 
                 if (overflow > 2) {
-                    title.style.setProperty('--marquee-distance', `${-overflow - 4}px`);
+                    title.style.setProperty('--marquee-duration', `${Math.max(6, Math.round(text.scrollWidth / 35))}s`);
                     title.classList.add('is-overflowing');
                 } else {
                     title.classList.remove('is-overflowing');
-                    title.style.removeProperty('--marquee-distance');
+                    title.style.removeProperty('--marquee-duration');
                 }
             });
         });

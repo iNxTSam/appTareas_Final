@@ -115,24 +115,47 @@
     }
 
     @keyframes gantt-marquee {
-        0%,
-        12% {
+        from {
             transform: translateX(0);
         }
 
-        88%,
-        100% {
-            transform: translateX(var(--marquee-distance, 0px));
+        to {
+            transform: translateX(-50%);
         }
     }
 
-    .gantt-bar:hover .gantt-bar-title.is-overflowing,
-    .gantt-bar:focus-visible .gantt-bar-title.is-overflowing {
-        animation: gantt-marquee 5s ease-in-out infinite alternate;
+    .gantt-bar-title {
+        position: relative;
+        display: block;
+    }
+
+    .gantt-marquee-track {
+        display: inline-flex;
+        width: max-content;
+        white-space: nowrap;
+        will-change: transform;
+    }
+
+    .gantt-marquee-track > span {
+        flex: none;
+        padding-right: 1.5rem;
+    }
+
+    .gantt-title-clone {
+        display: none;
+    }
+
+    .gantt-bar-title.is-overflowing .gantt-title-clone {
+        display: inline;
+    }
+
+    .gantt-bar:hover .gantt-bar-title.is-overflowing .gantt-marquee-track,
+    .gantt-bar:focus-visible .gantt-bar-title.is-overflowing .gantt-marquee-track {
+        animation: gantt-marquee var(--marquee-duration, 8s) linear infinite;
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .gantt-bar-title.is-overflowing {
+        .gantt-marquee-track {
             animation: none !important;
         }
     }
