@@ -1,33 +1,60 @@
 @extends('layouts.app')
 
-@section('title', 'Área privada')
+@php
+    $displayName = $apiUser['name'] ?? 'Usuario';
+    $email = $apiUser['email'] ?? '';
+    $responsibles = $accounts ?? [];
+    $teamOptions = $teams ?? [];
+    $projectOptions = $projects ?? [];
+    $firstName = trim(explode(' ', $displayName)[0] ?? $displayName);
+@endphp
+
+@section('title', 'AppTareas')
+@section('body-class', 'min-h-screen bg-fondo text-negro')
+@section('main-class', 'w-full')
 
 @section('content')
-    <h1 class="text-primario mb-1">Área privada</h1>
-    <p class="text-gris mb-8 font-medium">Has iniciado sesión correctamente.</p>
+    <div
+        id="task-app"
+        class="flex min-h-screen flex-col overflow-x-hidden"
+        data-tasks-url="{{ route('tasks.index') }}"
+        data-task-url-template="{{ route('tasks.show', ['task' => '__task__']) }}"
+    >
+        @include('panel.partials.header')
+        @include('panel.partials.navigation')
+        @include('panel.partials.views')
 
-    @if (session('success'))
-        <p class="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('success') }}</p>
-    @endif
+        <div id="task-loading" class="mx-auto flex w-full max-w-3xl items-center justify-center gap-2 px-5 py-6 text-sm font-medium text-slate-500">
+            <span class="h-4 w-4 animate-spin rounded-full border-2 border-primario/25 border-t-primario" aria-hidden="true"></span>
+            Cargando tareas…
+        </div>
 
-    @if (! empty($apiError))
-        <p class="mb-4 rounded-lg bg-yellow-50 px-4 py-3 text-sm text-yellow-700">{{ $apiError }}</p>
-    @endif
+        <div id="task-storage-error" class="mx-auto mb-4 hidden w-full max-w-3xl items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm leading-6 text-red-800" role="alert">
+            <p id="task-storage-error-message" class="min-w-0 flex-1"></p>
+            <button
+                type="button"
+                id="task-retry"
+                class="shrink-0 rounded-full border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+            >
+                Reintentar
+            </button>
+        </div>
 
-    <div class="rounded-2xl border border-gris/20 bg-white p-6 shadow-sm">
-        <p class="text-negro">
-            Hola, <span class="font-semibold text-primario">{{ $apiUser['name'] ?? 'Usuario' }}</span>.
-        </p>
-        <p class="mt-2 text-gris">Bienvenido a tu área privada.</p>
-    </div>
+        <p id="task-status-announcer" class="sr-only" role="status" aria-live="polite"></p>
 
-    <form method="POST" action="{{ route('logout') }}" class="mt-6">
-        @csrf
+        <div id="task-toast" class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 opacity-0 transition-opacity duration-200" role="status" aria-live="polite">
+            <p id="task-toast-message" class="pointer-events-auto max-w-md rounded-full bg-negro px-5 py-3 text-sm font-semibold text-white shadow-xl"></p>
+        </div>
+
+        @include('panel.partials.dialogs')
+
         <button
-            type="submit"
-            class="w-full rounded-full border border-primario px-5 py-3 font-semibold text-primario transition hover:bg-primario hover:text-white focus:outline-none focus:ring-2 focus:ring-primario/40"
+            type="button"
+            data-open-new-task
+            aria-label="Agregar una tarea"
+            class="fixed bottom-6 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primario text-3xl font-light leading-none text-white shadow-[0_12px_26px_rgba(78,27,35,0.35)] transition hover:bg-primario-oscuro focus:outline-none focus:ring-2 focus:ring-primario/50 focus:ring-offset-2 focus:ring-offset-fondo sm:bottom-8 sm:right-8"
         >
-            Cerrar sesión
+            +
         </button>
-    </form>
+    </div>
 @endsection

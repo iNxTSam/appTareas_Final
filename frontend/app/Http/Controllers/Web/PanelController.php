@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Services\BackendApiClient;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
 
 class PanelController extends Controller
@@ -15,6 +16,9 @@ class PanelController extends Controller
     {
         $token = $request->session()->get('api_token');
         $user = $request->session()->get('api_user');
+        $teams = [];
+        $projects = [];
+        $accounts = [];
 
         try {
             $response = $this->api->me($token);
@@ -22,6 +26,9 @@ class PanelController extends Controller
             return view('panel', [
                 'apiUser' => $user,
                 'apiError' => 'No se pudo validar la sesión con el servidor.',
+                'teams' => [],
+                'projects' => [],
+                'accounts' => [],
             ]);
         }
 
@@ -38,11 +45,32 @@ class PanelController extends Controller
             $request->session()->put('api_user', $user);
         }
 
+        try {
+            $teams = $this->collection($this->api->teams($token));
+            $projects = $this->collection($this->api->projects($token));
+            $accounts = $this->collection($this->api->accounts($token));
+        } catch (ConnectionException) {
+            // Los selectores quedan vacíos; la vista sigue siendo utilizable.
+        }
+
         return view('panel', [
             'apiUser' => $user,
             'apiError' => $response->successful()
                 ? null
                 : 'No se pudo cargar la información de tu cuenta.',
+            'teams' => $teams,
+            'projects' => $projects,
+            'accounts' => $accounts,
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function collection(Response $response): array
+    {
+        $data = $response->successful() ? $response->json('data') : null;
+
+        return is_array($data) ? $data : [];
     }
 }

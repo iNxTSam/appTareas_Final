@@ -1,3 +1,5 @@
+FROM node:24-slim AS node
+
 FROM php:8.4-cli
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -22,6 +24,14 @@ RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-s
 
 # Codigo de la aplicacion
 COPY . .
+
+# Node 24 desde la imagen oficial (evita depender de NodeSource)
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && node --version \
+    && npm --version
 
 # Dependencias de frontend y compilacion de assets con Vite
 RUN npm ci --no-audit --no-fund && npm run build
