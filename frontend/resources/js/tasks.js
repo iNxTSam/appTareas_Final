@@ -377,11 +377,11 @@ function createTaskViewCard(task) {
     body.className = 'min-w-0 flex-1';
 
     const title = document.createElement('span');
-    title.className = 'block truncate text-[13px] font-extrabold uppercase tracking-tight text-negro';
+    title.className = 'block break-words text-[13px] font-extrabold uppercase tracking-tight text-negro';
     title.textContent = task.title;
 
     const meta = document.createElement('span');
-    meta.className = 'mt-0.5 block truncate text-[10px] font-medium text-gris';
+    meta.className = 'mt-0.5 block text-[10px] font-medium text-gris';
     meta.textContent = `${task.team || 'Personal'} · ${formatDueDate(task.due_date)}`;
 
     body.append(title, meta);
@@ -1196,6 +1196,7 @@ function setupTaskHeader(root) {
                     const chip = document.createElement('span');
                     chip.className = `block truncate rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-tight ${statusChip[task.status]}`;
                     chip.textContent = `● ${task.title}`;
+                    chip.title = task.title;
                     button.append(chip);
                 });
 
