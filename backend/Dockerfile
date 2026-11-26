@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ============================================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
         $PHPIZE_DEPS \
+    && pecl channel-update pecl.php.net \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
     && printf 'xdebug.mode=coverage\nxdebug.start_with_request=yes\nxdebug.log_level=0\n' \
