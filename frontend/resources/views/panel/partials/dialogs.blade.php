@@ -16,7 +16,7 @@
                 </header>
 
                 <div class="flex-1 space-y-4 overflow-y-auto px-6 py-5 sm:px-8">
-                    <p id="task-form-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700" role="alert"></p>
+                    <p id="task-form-error" class="hidden break-words rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700" role="alert"></p>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
@@ -67,7 +67,7 @@
 
                     <div>
                         <label for="task-description" class="field-label">Descripción <span class="font-normal text-slate-500">(opcional)</span></label>
-                        <textarea id="task-description" name="description" rows="2" maxlength="1000" class="field-input"></textarea>
+                        <textarea id="task-description" name="description" rows="2" maxlength="1000" class="field-input break-words [overflow-wrap:anywhere]"></textarea>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-3">
@@ -80,8 +80,8 @@
                             </select>
                         </div>
                         <div>
-                            <label for="task-start-date" class="field-label">Fecha de inicio</label>
-                            <input id="task-start-date" name="start_date" type="date" class="field-input">
+                            <label for="task-start-date" class="field-label">Fecha de inicio <span class="font-normal text-peligro">*</span></label>
+                            <input id="task-start-date" name="start_date" type="date" required class="field-input">
                         </div>
                         <div>
                             <label for="task-date" class="field-label">Fecha límite</label>
@@ -91,7 +91,7 @@
 
                     <div>
                         <label for="task-subtasks" class="field-label">Subtareas <span class="font-normal text-slate-500">(una por línea)</span></label>
-                        <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="field-input"></textarea>
+                        <textarea id="task-subtasks" name="subtasks" rows="3" placeholder="Planear la tarea&#10;Revisar el resultado" class="field-input break-words [overflow-wrap:anywhere]"></textarea>
                         <p class="mt-1 text-[11px] leading-5 text-slate-500">Al abrir esta tarea podrás asignar un responsable a cada subtarea.</p>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
             </div>
         </dialog>
 
-        <dialog id="task-detail-modal" class="m-auto w-[calc(100%-2rem)] max-w-xl border-0 bg-transparent p-0 shadow-none backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
+        <dialog id="task-detail-modal" class="m-auto max-h-[95vh] w-[calc(100%-2rem)] max-w-xl overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 shadow-none backdrop:bg-negro/40 backdrop:backdrop-blur-sm">
             <div class="space-y-2">
                 <section class="relative overflow-hidden rounded-2xl border border-gris/30 bg-[#FFFAFA] shadow-lg">
                     <button
@@ -149,11 +149,12 @@
                     </button>
                     <div class="px-5 pb-4 pt-5 sm:px-6">
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1 pr-10">
-                            <p id="detail-project-category" class="text-xs font-extrabold uppercase text-primario"></p>
+                            <p id="detail-project-category" class="break-words text-xs font-extrabold uppercase text-primario [overflow-wrap:anywhere]"></p>
                             <span id="detail-subtasks-counter" class="text-[10px] font-medium text-gris"></span>
                         </div>
-                        <h2 id="detail-task-title" class="mt-2 break-words text-xl font-extrabold uppercase leading-tight text-negro sm:text-2xl"><span class="sr-only">Detalle de la tarea</span></h2>
-                        <p id="detail-task-description" class="mt-2 whitespace-pre-wrap text-sm leading-6 text-gris"></p>
+                        <h2 id="detail-task-title" class="mt-2 break-words text-xl font-extrabold uppercase leading-tight text-negro [overflow-wrap:anywhere] sm:text-2xl"><span class="sr-only">Detalle de la tarea</span></h2>
+                        <p id="detail-task-description" class="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-gris [overflow-wrap:anywhere]"></p>
+                        <p id="detail-overdue" class="mt-2 hidden rounded-lg bg-[#F9E3E3] px-3 py-1.5 text-[11px] font-bold text-[#A02A2A]" role="status">Tarea vencida</p>
                     </div>
                     <div class="grid grid-cols-2 border-t border-gris/15 text-[10px] sm:grid-cols-[1fr_1fr_1fr_1fr_0.9fr]">
                         <div class="border-r border-gris/15 px-5 py-3 sm:px-4">
@@ -232,9 +233,12 @@
                     </form>
                 </section>
 
-                <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+                <div class="sticky bottom-0 z-20 flex flex-col-reverse gap-3 rounded-2xl bg-fondo/95 p-2 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
                     <button type="button" data-delete-task class="btn-danger">Eliminar tarea</button>
-                    <button type="button" data-edit-task class="btn-primary">Editar tarea</button>
+                    <div class="flex flex-col gap-2 sm:flex-row">
+                        <button type="button" data-edit-task class="btn-outline">Editar tarea</button>
+                        <button type="button" data-save-detail class="btn-primary">Guardar y cerrar</button>
+                    </div>
                 </div>
             </div>
         </dialog>

@@ -19,6 +19,7 @@
         class="flex min-h-screen flex-col overflow-x-hidden"
         data-tasks-url="{{ route('tasks.index') }}"
         data-task-url-template="{{ route('tasks.show', ['task' => '__task__']) }}"
+        data-session-timeout="{{ (int) config('session.lifetime') * 60 }}"
     >
         @include('panel.partials.header')
         @include('panel.partials.navigation')
@@ -30,7 +31,7 @@
         </div>
 
         <div id="task-storage-error" class="mx-auto mb-4 hidden w-full max-w-3xl items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-3 text-sm leading-6 text-red-800" role="alert">
-            <p id="task-storage-error-message" class="min-w-0 flex-1"></p>
+            <p id="task-storage-error-message" class="min-w-0 flex-1 break-words [overflow-wrap:anywhere]"></p>
             <button
                 type="button"
                 id="task-retry"
@@ -43,7 +44,14 @@
         <p id="task-status-announcer" class="sr-only" role="status" aria-live="polite"></p>
 
         <div id="task-toast" class="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 opacity-0 transition-opacity duration-200" role="status" aria-live="polite">
-            <p id="task-toast-message" class="pointer-events-auto max-w-md rounded-full bg-negro px-5 py-3 text-sm font-semibold text-white shadow-xl"></p>
+            <p id="task-toast-message" class="pointer-events-auto max-w-md break-words rounded-full bg-negro px-5 py-3 text-sm font-semibold text-white shadow-xl [overflow-wrap:anywhere]"></p>
+        </div>
+
+        <div id="session-warning" class="pointer-events-none fixed inset-x-0 bottom-6 z-[60] hidden justify-center px-4" role="alert" aria-live="assertive">
+            <div class="pointer-events-auto flex w-full max-w-md flex-col gap-3 rounded-2xl border border-aviso/40 bg-white px-5 py-4 text-sm shadow-xl sm:flex-row sm:items-center">
+                <p class="min-w-0 flex-1 font-semibold leading-5 text-negro">Tu sesión expirará en <span id="session-warning-time">2 minutos</span> por inactividad.</p>
+                <button type="button" id="session-warning-continue" class="btn-primary shrink-0 px-4 py-2 text-[10px]">Seguir conectado</button>
+            </div>
         </div>
 
         @include('panel.partials.dialogs')

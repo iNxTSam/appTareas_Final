@@ -7,6 +7,12 @@
         <h1 class="text-center text-[30px] font-extrabold leading-tight tracking-tight text-negro">Inicia sesión</h1>
         <p class="mt-2 text-center text-[13px] font-medium text-gris">Bienvenido de nuevo. Accede a tu tablero de tareas.</p>
 
+        @if (request()->boolean('expired'))
+            <p class="mt-5 rounded-xl bg-[#FBF3DF] px-4 py-3 text-center text-sm font-semibold text-[#5A3E08]" role="status">
+                Tu sesión expiró por inactividad. Inicia sesión de nuevo.
+            </p>
+        @endif
+
         @if (session('success'))
             <p class="mt-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">{{ session('success') }}</p>
         @endif

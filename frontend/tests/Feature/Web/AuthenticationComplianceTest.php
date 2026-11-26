@@ -251,6 +251,15 @@ class AuthenticationComplianceTest extends TestCase
             ->assertSee('Iniciar sesión');
     }
 
+    public function test_login_muestra_aviso_de_sesion_expirada(): void
+    {
+        Http::fake();
+
+        $this->get('/login?expired=1')
+            ->assertOk()
+            ->assertSee('Tu sesión expiró por inactividad');
+    }
+
     public function test_cp13_panel_sin_sesion_redirige_al_login(): void
     {
         Http::fake();

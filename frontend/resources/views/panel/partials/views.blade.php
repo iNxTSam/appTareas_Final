@@ -57,6 +57,17 @@
                         </button>
                     </div>
 
+                    <div id="home-overdue-banner" class="mx-auto mt-4 hidden w-full max-w-[1200px] items-center justify-between gap-3 rounded-2xl border border-peligro/30 bg-[#F9E3E3] px-4 py-3 sm:px-5">
+                        <p id="home-overdue-text" class="min-w-0 text-xs font-bold text-[#A02A2A] sm:text-sm"></p>
+                        <button
+                            type="button"
+                            id="home-overdue-link"
+                            class="shrink-0 rounded-full bg-white px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.08em] text-[#A02A2A] transition hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-peligro/40"
+                        >
+                            Ver tareas
+                        </button>
+                    </div>
+
                     <div id="home-board-view" class="mt-8 w-full">
                         <div id="home-board-columns" class="carousel-mask draggable-carousel flex gap-5 overflow-x-auto overscroll-x-contain px-10 pb-4 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" tabindex="0" role="region" aria-label="Carrusel horizontal de tareas"></div>
                         <div id="home-board-empty" class="hidden py-14">

@@ -195,6 +195,7 @@ function normalizeTask(value) {
         team_id: value.team_id === null || value.team_id === undefined ? '' : String(value.team_id),
         project_id: value.project_id === null || value.project_id === undefined ? '' : String(value.project_id),
         is_important: priority === 'high' || value.is_important === true || value.important === true,
+        is_overdue: status !== 'TERMINADOS' && dueDate !== '' && dueDate < toDateString(new Date()),
         subtasks,
         progress_percentage: Math.round(progress),
         start_date: startDate,
@@ -370,19 +371,21 @@ function createTaskViewCard(task) {
 
     const dot = document.createElement('span');
     dot.className = `mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-        task.status === 'TERMINADOS' ? 'bg-exito' : task.status === 'PROCESO' ? 'bg-proceso' : 'bg-aviso'
+        task.is_overdue ? 'bg-peligro' : task.status === 'TERMINADOS' ? 'bg-exito' : task.status === 'PROCESO' ? 'bg-proceso' : 'bg-aviso'
     }`;
 
     const body = document.createElement('span');
     body.className = 'min-w-0 flex-1';
 
     const title = document.createElement('span');
-    title.className = 'block break-words text-[13px] font-extrabold uppercase tracking-tight text-negro';
+    title.className = 'block break-words text-[13px] font-extrabold uppercase tracking-tight text-negro [overflow-wrap:anywhere]';
     title.textContent = task.title;
 
     const meta = document.createElement('span');
-    meta.className = 'mt-0.5 block text-[10px] font-medium text-gris';
-    meta.textContent = `${task.team || 'Personal'} · ${formatDueDate(task.due_date)}`;
+    meta.className = task.is_overdue
+        ? 'mt-0.5 block text-[10px] font-semibold text-peligro'
+        : 'mt-0.5 block text-[10px] font-medium text-gris';
+    meta.textContent = `${task.team || 'Personal'} · ${formatDueDate(task.due_date)}${task.is_overdue ? ' · Vencida' : ''}`;
 
     body.append(title, meta);
 
@@ -398,7 +401,7 @@ function createTaskViewCard(task) {
 function createBoardTaskCard(task, isCarousel = true) {
     const card = document.createElement('article');
     card.dataset.taskViewId = task.id;
-    card.className = `group relative flex ${isCarousel ? 'w-[min(84vw,380px)] min-w-[280px] shrink-0 cursor-pointer' : 'w-full cursor-grab active:cursor-grabbing'} flex-col rounded-[20px] bg-primario p-5 text-left text-white shadow-[0_14px_30px_rgba(78,27,35,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(78,27,35,0.28)] focus-within:ring-2 focus-within:ring-primario/50 focus-within:ring-offset-2 focus-within:ring-offset-fondo`;
+    card.className = `group relative flex ${isCarousel ? 'w-[min(84vw,380px)] min-w-[280px] shrink-0 cursor-pointer' : 'w-full cursor-grab active:cursor-grabbing'} flex-col rounded-[20px] bg-primario p-5 text-left text-white shadow-[0_14px_30px_rgba(78,27,35,0.22)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_38px_rgba(78,27,35,0.28)] focus-within:ring-2 focus-within:ring-primario/50 focus-within:ring-offset-2 focus-within:ring-offset-fondo ${task.is_overdue ? 'ring-2 ring-peligro/80' : ''}`;
 
     if (!isCarousel) {
         card.draggable = true;
@@ -412,23 +415,27 @@ function createBoardTaskCard(task, isCarousel = true) {
         INICIADO: 'bg-white text-[#0F6B5F]',
         PROCESO: 'bg-white text-[#5A3E08]',
         TERMINADOS: 'bg-white text-[#1F7A4A]',
+        OVERDUE: 'bg-[#F9E3E3] text-[#A02A2A]',
     };
     const statusDots = {
         INICIADO: 'bg-proceso',
         PROCESO: 'bg-aviso',
         TERMINADOS: 'bg-exito',
+        OVERDUE: 'bg-peligro',
     };
 
+    const visualStatus = task.is_overdue ? 'OVERDUE' : task.status;
     const statusBadge = document.createElement('span');
-    statusBadge.className = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[8px] font-extrabold uppercase tracking-[0.12em] ${statusStyles[task.status]}`;
+    statusBadge.className = `inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[8px] font-extrabold uppercase tracking-[0.12em] ${statusStyles[visualStatus]}`;
     const statusDot = document.createElement('span');
-    statusDot.className = `h-1.5 w-1.5 rounded-full ${statusDots[task.status]}`;
+    statusDot.className = `h-1.5 w-1.5 rounded-full ${statusDots[visualStatus]}`;
     const badgeLabels = {
         INICIADO: 'Iniciado',
         PROCESO: 'Proceso',
         TERMINADOS: 'Terminado',
+        OVERDUE: 'Vencida',
     };
-    statusBadge.append(statusDot, document.createTextNode(badgeLabels[task.status]));
+    statusBadge.append(statusDot, document.createTextNode(badgeLabels[visualStatus]));
 
     header.append(statusBadge);
 
@@ -440,7 +447,7 @@ function createBoardTaskCard(task, isCarousel = true) {
     }
 
     const title = document.createElement('h2');
-    title.className = 'mt-4 text-[21px] font-extrabold uppercase leading-[1.08] tracking-tight text-white';
+    title.className = 'mt-4 text-[21px] font-extrabold uppercase leading-[1.08] tracking-tight text-white [overflow-wrap:anywhere]';
     title.textContent = task.title;
 
     const context = document.createElement('p');
@@ -869,6 +876,8 @@ function setupTaskHeader(root) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    root.querySelector('#home-overdue-link')?.addEventListener('click', () => showView('tasks'));
+
     window.addEventListener('popstate', () => {
         activeView = viewFromHash();
         updateNavigation();
@@ -1093,19 +1102,30 @@ function setupTaskHeader(root) {
         const previousDate = shiftDate(selectedDate, -1);
         const nextDate = shiftDate(selectedDate, 1);
         const dateStats = root.querySelector('#selected-date-stats');
+        const overdueTasks = tasks.filter((task) => task.is_overdue);
 
         root.querySelector('#previous-date-label').textContent = formatCarouselDate(previousDate, false);
         root.querySelector('#next-date-label').textContent = formatCarouselDate(nextDate, false);
         root.querySelector('#selected-date-label').textContent = formatCarouselDate(selectedDate);
-        root.querySelector('#tasks-view-date').textContent = 'Todas tus tareas';
         root.querySelector('#agenda-selected-date').textContent = formatCarouselDate(selectedDate);
 
+        const overdueBanner = root.querySelector('#home-overdue-banner');
+        overdueBanner?.classList.toggle('hidden', overdueTasks.length === 0);
+        root.querySelector('#home-overdue-text').textContent = overdueTasks.length === 1
+            ? 'Tienes 1 tarea vencida sin completar.'
+            : `Tienes ${overdueTasks.length} tareas vencidas sin completar.`;
+
+        const overdueToday = dateTasks.filter((task) => task.is_overdue).length;
         const metrics = [
             { text: `${dateTasks.length} metas`, className: 'font-bold text-primario' },
             { text: `${dateTasks.reduce((total, task) => total + task.subtasks.length, 0)} tareas`, className: 'font-bold text-gris' },
             { text: `${dateTasks.filter((task) => task.status === 'TERMINADOS').length} terminadas`, className: 'font-bold text-[#1F7A4A]' },
             { text: `${dateTasks.filter((task) => task.status === 'INICIADO').length} iniciadas`, className: 'font-bold text-[#0F6B5F]' },
         ];
+
+        if (overdueToday > 0) {
+            metrics.push({ text: `${overdueToday} ${overdueToday === 1 ? 'vencida' : 'vencidas'} hoy`, className: 'font-bold text-[#A02A2A]' });
+        }
         const statsElements = [];
 
         metrics.forEach((metric, index) => {
@@ -1275,7 +1295,11 @@ function setupTaskHeader(root) {
 
         taskList.replaceChildren(...taskColumns);
         taskList.classList.toggle('hidden', tasks.length === 0);
-        root.querySelector('#tasks-view-date').textContent = 'Todas tus tareas';
+        const overdueCount = tasks.filter((task) => task.is_overdue).length;
+        const tasksViewDate = root.querySelector('#tasks-view-date');
+        tasksViewDate.textContent = overdueCount > 0 ? `Todas tus tareas · ${overdueCount} ${overdueCount === 1 ? 'vencida' : 'vencidas'}` : 'Todas tus tareas';
+        tasksViewDate.classList.toggle('font-semibold', overdueCount > 0);
+        tasksViewDate.classList.toggle('text-peligro', overdueCount > 0);
         root.querySelector('#tasks-view-count').textContent = `${tasks.length} ${tasks.length === 1 ? 'tarea' : 'tareas'}`;
         root.querySelector('#tasks-view-empty').classList.toggle('hidden', tasks.length > 0);
 
@@ -1382,7 +1406,7 @@ function setupTaskHeader(root) {
             button.className = 'w-full rounded-2xl border border-gris/10 bg-fondo p-4 text-left transition hover:border-primario/30 focus:outline-none focus:ring-2 focus:ring-primario/30';
 
             const title = document.createElement('span');
-            title.className = 'block font-bold text-negro';
+            title.className = 'block break-words font-bold text-negro [overflow-wrap:anywhere]';
             title.textContent = task.title;
 
             const message = document.createElement('span');
@@ -1418,6 +1442,7 @@ function setupTaskHeader(root) {
         detailDialog.querySelector('#detail-project-category').textContent = task.category;
         detailDialog.querySelector('#detail-task-title').textContent = task.title;
         detailDialog.querySelector('#detail-task-description').textContent = task.description || 'Sin descripción';
+        detailDialog.querySelector('#detail-overdue').classList.toggle('hidden', !task.is_overdue);
         detailDialog.querySelector('#detail-status-select').value = API_STATUS_BY_TASK_STATUS[task.status] ?? 'pendiente';
         detailResponsibleSelect.value = task.responsible_id || '';
         detailDialog.querySelector('#detail-percent-value').textContent = `${task.progress_percentage}%`;
@@ -1453,16 +1478,16 @@ function setupTaskHeader(root) {
             const text = document.createElement('span');
             text.textContent = subtask.text;
             text.className = subtask.done
-                ? 'break-words text-xs font-medium text-gris line-through'
-                : 'break-words text-xs font-medium text-gris';
+                ? 'min-w-0 flex-1 break-words text-xs font-medium text-gris line-through [overflow-wrap:anywhere]'
+                : 'min-w-0 flex-1 break-words text-xs font-medium text-gris [overflow-wrap:anywhere]';
 
             const header = document.createElement('div');
             header.className = 'flex min-w-0 items-center justify-between gap-2';
 
             const state = document.createElement('span');
             state.className = subtask.done
-                ? 'rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#1F7A4A]'
-                : 'rounded-full bg-primario-suave px-2 py-1 text-[9px] font-bold text-primario';
+                ? 'shrink-0 rounded-full bg-[#E3F1E9] px-2 py-1 text-[9px] font-bold text-[#1F7A4A]'
+                : 'shrink-0 rounded-full bg-primario-suave px-2 py-1 text-[9px] font-bold text-primario';
             state.textContent = subtask.done ? 'Hecha' : 'Pendiente';
             header.append(text, state);
 
@@ -2150,6 +2175,12 @@ function setupTaskHeader(root) {
 
         detailDialog.close();
         openTaskForm(task);
+    });
+
+    detailDialog.querySelector('[data-save-detail]').addEventListener('click', () => {
+        const task = tasks.find((item) => item.id === detailDialog.dataset.taskId);
+        detailDialog.close();
+        announce(task ? `Cambios guardados: ${task.title}` : 'Cambios guardados.');
     });
 
     detailDialog.querySelector('[data-delete-task]').addEventListener('click', () => {

@@ -106,7 +106,7 @@ class TaskController extends Controller
             'project_id' => ['nullable', 'integer', 'min:1'],
             'status' => ['required', Rule::in(self::STATUSES)],
             'priority' => ['required', Rule::in(self::PRIORITIES)],
-            'start_date' => ['nullable', 'date'],
+            'start_date' => ['required', 'date'],
             'due_date' => ['nullable', 'date'],
             'responsible_id' => ['nullable', 'string', 'max:120'],
             'subtasks' => ['sometimes', 'array'],
@@ -141,7 +141,7 @@ class TaskController extends Controller
      */
     private function toApiPayload(array $data): array
     {
-        $startDate = $data['start_date'] ?? $data['due_date'] ?? now()->toDateString();
+        $startDate = $data['start_date'];
         $endDate = $data['due_date'] ?? $startDate;
         $responsibleId = (string) ($data['responsible_id'] ?? '');
         $subtasks = array_map(static fn (array $subtask): array => [

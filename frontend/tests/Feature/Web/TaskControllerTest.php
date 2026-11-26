@@ -4,7 +4,6 @@ namespace Tests\Feature\Web;
 
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -185,11 +184,9 @@ class TaskControllerTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer test-token'));
     }
 
-    public function test_task_creation_defaults_missing_start_date_to_the_due_date(): void
+    public function test_task_creation_rejects_missing_start_date(): void
     {
-        Http::fake([
-            'http://backend.test/api/tasks' => Http::response(['data' => $this->apiTask()], 201),
-        ]);
+        Http::fake();
 
         $this->withSession($this->sessionData())
             ->postJson(route('tasks.store'), [
@@ -198,36 +195,10 @@ class TaskControllerTest extends TestCase
                 'priority' => 'medium',
                 'due_date' => '2026-11-20',
             ])
-            ->assertCreated();
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['start_date']);
 
-        Http::assertSent(fn ($request) => $request->method() === 'POST'
-            && $request->data()['start_date'] === '2026-11-20'
-            && $request->data()['end_date'] === '2026-11-20'
-            && $request->data()['priority'] === 'media'
-            && $request->data()['team_id'] === null
-            && $request->data()['assignee_ids'] === []);
-    }
-
-    public function test_task_creation_defaults_missing_dates_to_today(): void
-    {
-        $this->travelTo(Carbon::parse('2026-11-15 09:00:00'));
-
-        Http::fake([
-            'http://backend.test/api/tasks' => Http::response(['data' => $this->apiTask()], 201),
-        ]);
-
-        $this->withSession($this->sessionData())
-            ->postJson(route('tasks.store'), [
-                'title' => 'Preparar el tablero',
-                'status' => 'pendiente',
-                'priority' => 'low',
-            ])
-            ->assertCreated();
-
-        Http::assertSent(fn ($request) => $request->method() === 'POST'
-            && $request->data()['start_date'] === '2026-11-15'
-            && $request->data()['end_date'] === '2026-11-15'
-            && $request->data()['priority'] === 'baja');
+        Http::assertNothingSent();
     }
 
     public function test_task_detail_is_fetched_with_the_session_token(): void
