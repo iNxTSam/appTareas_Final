@@ -764,6 +764,10 @@ function setupTaskHeader(root) {
         });
         const changes = added.length + removed.length + updated.length;
 
+        if (changes === 0) {
+            return { ok: true, message: '' };
+        }
+
         if (changes !== 1) {
             return { ok: false, message: 'No se pudo identificar una única tarea para guardar.' };
         }
@@ -915,7 +919,7 @@ function setupTaskHeader(root) {
         bar.dataset.ganttTaskId = task.id;
         bar.dataset.taskViewId = task.id;
         bar.style.gridColumn = `${startIndex + 1} / ${endIndex + 2}`;
-        bar.className = `z-10 flex h-9 w-full min-w-[24px] cursor-grab items-center gap-2 justify-self-start overflow-hidden rounded-full px-3 text-left uppercase shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primario/60 active:cursor-grabbing ${color.background} ${color.text}`;
+        bar.className = `gantt-bar z-10 flex h-9 w-full min-w-[24px] cursor-grab items-center gap-2 justify-self-start overflow-hidden rounded-full px-3 text-left uppercase shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primario/60 active:cursor-grabbing ${color.background} ${color.text}`;
         bar.title = `${task.title}: ${task.start_date} → ${task.due_date}. Arrastra para mover las fechas.`;
         bar.setAttribute('aria-label', `${task.title}, ${statusLabel}, del ${task.start_date} al ${task.due_date}. ${task.progress_percentage}% completado.`);
 
@@ -933,12 +937,10 @@ function setupTaskHeader(root) {
             bar.append(status);
         }
 
-        if (spanDays >= 5) {
-            const title = document.createElement('span');
-            title.className = 'min-w-0 flex-1 truncate text-[10px] font-extrabold tracking-[0.04em]';
-            title.textContent = task.title;
-            bar.append(title);
-        }
+        const title = document.createElement('span');
+        title.className = 'gantt-bar-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-[10px] font-extrabold tracking-[0.04em]';
+        title.textContent = task.title;
+        bar.append(title);
 
         if (spanDays >= 6) {
             const counts = document.createElement('span');
@@ -970,18 +972,7 @@ function setupTaskHeader(root) {
 
         bar.append(avatars);
 
-        if (spanDays < 5) {
-            const label = document.createElement('span');
-            label.className = 'z-10 min-w-0 cursor-pointer self-center truncate pl-2 text-[10px] font-extrabold uppercase tracking-[0.04em] text-negro';
-            label.style.gridColumn = `${endIndex + 2} / -1`;
-            label.dataset.ganttTaskId = task.id;
-            label.dataset.taskViewId = task.id;
-            label.textContent = task.title;
-
-            return [bar, label];
-        }
-
-        return [bar];
+        return bar;
     };
 
     const renderGanttView = () => {
@@ -1064,10 +1055,24 @@ function setupTaskHeader(root) {
             row.className = 'grid items-center';
             row.style.gridTemplateColumns = `repeat(${GANTT_DAYS}, minmax(0, 1fr))`;
             row.setAttribute('role', 'listitem');
-            row.append(...createGanttBar(task));
+            row.append(createGanttBar(task));
 
             return row;
         }));
+
+        window.requestAnimationFrame(() => {
+            rowsElement.querySelectorAll('.gantt-bar-title').forEach((title) => {
+                const overflow = title.scrollWidth - title.clientWidth;
+
+                if (overflow > 2) {
+                    title.style.setProperty('--marquee-distance', `${-overflow - 4}px`);
+                    title.classList.add('is-overflowing');
+                } else {
+                    title.classList.remove('is-overflowing');
+                    title.style.removeProperty('--marquee-distance');
+                }
+            });
+        });
     };
 
     const renderHomeView = () => {
@@ -1549,6 +1554,7 @@ function setupTaskHeader(root) {
         }
 
         newTaskDialog.showModal();
+        taskSubmitButton.disabled = false;
         taskTitleInput.focus();
     };
 

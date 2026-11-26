@@ -113,4 +113,27 @@
     .numeric {
         font-variant-numeric: tabular-nums;
     }
+
+    @keyframes gantt-marquee {
+        0%,
+        12% {
+            transform: translateX(0);
+        }
+
+        88%,
+        100% {
+            transform: translateX(var(--marquee-distance, 0px));
+        }
+    }
+
+    .gantt-bar:hover .gantt-bar-title.is-overflowing,
+    .gantt-bar:focus-visible .gantt-bar-title.is-overflowing {
+        animation: gantt-marquee 5s ease-in-out infinite alternate;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .gantt-bar-title.is-overflowing {
+            animation: none !important;
+        }
+    }
 }
