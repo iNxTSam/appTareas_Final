@@ -12,13 +12,16 @@ const API_TASK_STATUSES = {
 
 const TASK_PRIORITIES = ['low', 'medium', 'high'];
 const NOTIFICATION_WINDOW_MS = 24 * 60 * 60 * 1000;
+let fallbackTaskId = 0;
 
 function createTaskId() {
     if (typeof window.crypto?.randomUUID === 'function') {
         return window.crypto.randomUUID();
     }
 
-    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    fallbackTaskId += 1;
+
+    return `${Date.now()}-${fallbackTaskId.toString(36)}`;
 }
 
 function toDateString(date) {

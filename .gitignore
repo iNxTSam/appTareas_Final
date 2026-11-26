@@ -4,3 +4,4 @@
 !.env.production.example
 node_modules/
 compose.override.yaml
+.scannerwork/
