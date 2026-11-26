@@ -377,11 +377,11 @@ function createTaskViewCard(task) {
     body.className = 'min-w-0 flex-1';
 
     const title = document.createElement('span');
-    title.className = 'block truncate text-[13px] font-extrabold uppercase tracking-tight text-negro';
+    title.className = 'block break-words text-[13px] font-extrabold uppercase tracking-tight text-negro';
     title.textContent = task.title;
 
     const meta = document.createElement('span');
-    meta.className = 'mt-0.5 block truncate text-[10px] font-medium text-gris';
+    meta.className = 'mt-0.5 block text-[10px] font-medium text-gris';
     meta.textContent = `${task.team || 'Personal'} · ${formatDueDate(task.due_date)}`;
 
     body.append(title, meta);
@@ -764,6 +764,10 @@ function setupTaskHeader(root) {
         });
         const changes = added.length + removed.length + updated.length;
 
+        if (changes === 0) {
+            return { ok: true, message: '' };
+        }
+
         if (changes !== 1) {
             return { ok: false, message: 'No se pudo identificar una única tarea para guardar.' };
         }
@@ -915,32 +919,39 @@ function setupTaskHeader(root) {
         bar.dataset.ganttTaskId = task.id;
         bar.dataset.taskViewId = task.id;
         bar.style.gridColumn = `${startIndex + 1} / ${endIndex + 2}`;
-        bar.className = `z-10 flex h-9 w-full min-w-[24px] cursor-grab items-center gap-2 justify-self-start overflow-hidden rounded-full px-3 text-left uppercase shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primario/60 active:cursor-grabbing ${color.background} ${color.text}`;
+        bar.className = `gantt-bar z-10 flex h-9 w-full min-w-[24px] cursor-grab items-center gap-2 justify-self-start overflow-hidden rounded-full px-3 text-left uppercase shadow-sm transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primario/60 active:cursor-grabbing ${color.background} ${color.text}`;
         bar.title = `${task.title}: ${task.start_date} → ${task.due_date}. Arrastra para mover las fechas.`;
         bar.setAttribute('aria-label', `${task.title}, ${statusLabel}, del ${task.start_date} al ${task.due_date}. ${task.progress_percentage}% completado.`);
 
-        if (task.is_important && spanDays >= 4) {
+        if (task.is_important && spanDays >= 7) {
             const important = document.createElement('span');
             important.className = 'shrink-0 rounded-full bg-aviso px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] text-[#4A3507]';
             important.textContent = 'Importante';
             bar.append(important);
         }
 
-        if (spanDays >= 5) {
+        if (spanDays >= 8) {
             const status = document.createElement('span');
             status.className = `hidden shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[8px] font-extrabold tracking-[0.08em] sm:inline ${statusText}`;
             status.textContent = statusLabel;
             bar.append(status);
         }
 
-        if (spanDays >= 5) {
-            const title = document.createElement('span');
-            title.className = 'min-w-0 flex-1 truncate text-[10px] font-extrabold tracking-[0.04em]';
-            title.textContent = task.title;
-            bar.append(title);
-        }
+        const title = document.createElement('span');
+        title.className = 'gantt-bar-title min-w-0 flex-1 overflow-hidden text-[10px] font-extrabold tracking-[0.04em]';
+        const track = document.createElement('span');
+        track.className = 'gantt-marquee-track';
+        const titleText = document.createElement('span');
+        titleText.textContent = task.title;
+        const titleClone = document.createElement('span');
+        titleClone.className = 'gantt-title-clone';
+        titleClone.textContent = task.title;
+        titleClone.setAttribute('aria-hidden', 'true');
+        track.append(titleText, titleClone);
+        title.append(track);
+        bar.append(title);
 
-        if (spanDays >= 6) {
+        if (spanDays >= 8) {
             const counts = document.createElement('span');
             counts.className = 'hidden shrink-0 text-[9px] font-extrabold numeric sm:inline';
             counts.textContent = `${completedSubtasks}/${task.subtasks.length}`;
@@ -957,7 +968,7 @@ function setupTaskHeader(root) {
         const avatars = document.createElement('span');
         avatars.className = 'hidden shrink-0 items-center md:flex';
 
-        if (spanDays >= 8) {
+        if (spanDays >= 10) {
             (task.assignees.length > 0 ? task.assignees : task.responsible_name ? [{ id: task.responsible_id, name: task.responsible_name }] : [])
                 .slice(0, 3)
                 .forEach((person, index) => {
@@ -970,18 +981,7 @@ function setupTaskHeader(root) {
 
         bar.append(avatars);
 
-        if (spanDays < 5) {
-            const label = document.createElement('span');
-            label.className = 'z-10 min-w-0 cursor-pointer self-center truncate pl-2 text-[10px] font-extrabold uppercase tracking-[0.04em] text-negro';
-            label.style.gridColumn = `${endIndex + 2} / -1`;
-            label.dataset.ganttTaskId = task.id;
-            label.dataset.taskViewId = task.id;
-            label.textContent = task.title;
-
-            return [bar, label];
-        }
-
-        return [bar];
+        return bar;
     };
 
     const renderGanttView = () => {
@@ -1064,10 +1064,26 @@ function setupTaskHeader(root) {
             row.className = 'grid items-center';
             row.style.gridTemplateColumns = `repeat(${GANTT_DAYS}, minmax(0, 1fr))`;
             row.setAttribute('role', 'listitem');
-            row.append(...createGanttBar(task));
+            row.append(createGanttBar(task));
 
             return row;
         }));
+
+        window.requestAnimationFrame(() => {
+            rowsElement.querySelectorAll('.gantt-bar-title').forEach((title) => {
+                const track = title.querySelector('.gantt-marquee-track');
+                const text = track?.firstElementChild;
+                const overflow = text ? text.scrollWidth - title.clientWidth : 0;
+
+                if (overflow > 2) {
+                    title.style.setProperty('--marquee-duration', `${Math.max(6, Math.round(text.scrollWidth / 35))}s`);
+                    title.classList.add('is-overflowing');
+                } else {
+                    title.classList.remove('is-overflowing');
+                    title.style.removeProperty('--marquee-duration');
+                }
+            });
+        });
     };
 
     const renderHomeView = () => {
@@ -1180,6 +1196,7 @@ function setupTaskHeader(root) {
                     const chip = document.createElement('span');
                     chip.className = `block truncate rounded-full px-1.5 py-0.5 text-[8px] font-bold leading-tight ${statusChip[task.status]}`;
                     chip.textContent = `● ${task.title}`;
+                    chip.title = task.title;
                     button.append(chip);
                 });
 
@@ -1549,6 +1566,7 @@ function setupTaskHeader(root) {
         }
 
         newTaskDialog.showModal();
+        taskSubmitButton.disabled = false;
         taskTitleInput.focus();
     };
 
